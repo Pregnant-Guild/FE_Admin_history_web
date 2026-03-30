@@ -23,10 +23,9 @@ export default function SignUpForm() {
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Hàm handle thay đổi input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrorMsg(""); // Xoá lỗi khi user gõ lại
+    setErrorMsg(""); 
   };
 
   // Hàm validate email
@@ -35,12 +34,18 @@ export default function SignUpForm() {
     return emailRegex.test(email);
   };
 
+  // Hàm validate mật khẩu mới
+  const isValidPassword = (pass: string) => {
+    // Tối thiểu 8 ký tự, 1 chữ in hoa, 1 chữ số, 1 ký tự đặc biệt
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    return passwordRegex.test(pass);
+  };
+
   // Xử lý khi bấm nút Sign Up (Step 1)
   const handleSignUpClick = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
 
-    // Validate cơ bản
     if (!formData.fname || !formData.lname || !formData.email || !formData.password) {
       setErrorMsg("Vui lòng điền đầy đủ thông tin.");
       return;
@@ -49,12 +54,14 @@ export default function SignUpForm() {
       setErrorMsg("Email không đúng định dạng.");
       return;
     }
+   if (!isValidPassword(formData.password)) {
+      setErrorMsg("Mật khẩu chưa đủ điều kiện. Vui lòng nhập tối thiểu 8 ký tự, 1 in hoa, 1 số và 1 ký tự đặc biệt.");
+      return;
+    }
 
     try {
       setLoading(true);
-      // Gọi hàm CREATEOTP
       await apiCreateOTP(formData.email);
-      // Nếu thành công, chuyển sang màn hình OTP
       setStep(2);
     } catch (error) {
       setErrorMsg("Lỗi khi tạo OTP. Vui lòng thử lại.");
@@ -91,7 +98,8 @@ export default function SignUpForm() {
       };
 
       const signupRes = await apiSignUp(signupPayload);
-      
+      console.log("API Sign Up Response:", signupRes);
+
       console.log("Đăng ký thành công!", signupRes);
       alert("Đăng ký thành công! Đang chuyển hướng...");
 
@@ -139,15 +147,12 @@ export default function SignUpForm() {
           {/* ----- STEP 1: FORM SIGN UP ----- */}
           {step === 1 && (
             <>
-              {/* Các nút đăng ký Social (Bỏ qua xử lý logic trong ví dụ này) */}
+              {/* Các nút đăng ký Social */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
-                {/* ... (Giữ nguyên các nút Sign up with Google / X của bạn) ... */}
                 <button className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
-                  {/* Icon Google */}
                   Sign up with Google
                 </button>
                 <button className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
-                  {/* Icon X */}
                   Sign up with X
                 </button>
               </div>
@@ -209,41 +214,41 @@ export default function SignUpForm() {
 
                   {/* Password */}
                   <div>
-                    <Label>
-                      Password<span className="text-error-500">*</span>
-                    </Label>
-                    <div className="relative">
+                    <Label>Password<span className="text-error-500">*</span></Label>
+                    
+                    {/* Thêm style báo đỏ ô nhập nếu pass chưa hợp lệ */}
+                    <div className={`relative ${formData.password.length > 0 && !isValidPassword(formData.password) ? 'border border-red-500 ring-1 ring-red-500 rounded-lg' : ''}`}>
                       <Input
                         name="password"
                         defaultValue={formData.password}
                         onChange={handleChange}
-                        placeholder="Enter your password"
+                        placeholder="Min. 8 characters"
                         type={showPassword ? "text" : "password"}
                       />
-                      <span
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                      >
-                        {showPassword ? (
-                          <span className="fill-gray-500 dark:fill-gray-400">
-                            <EyeIcon />
-                          </span>
-                        ) : (
-                          <span className="fill-gray-500 dark:fill-gray-400">
-                            <EyeCloseIcon />
-                          </span>
-                        )}
+                      <span onClick={() => setShowPassword(!showPassword)} className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2">
+                        {showPassword ? <EyeIcon /> : <EyeCloseIcon />}
                       </span>
                     </div>
+
+                    {/* Gợi ý trực quan cho người dùng */}
+                    <p className={`mt-2 text-xs ${formData.password.length === 0 ? 'text-gray-400' : isValidPassword(formData.password) ? 'text-green-500' : 'text-red-500'}`}>
+                      Mật khẩu phải chứa tối thiểu 8 ký tự, 1 chữ cái in hoa, 1 chữ số và 1 ký tự đặc biệt.
+                    </p>
                   </div>
 
                   {/* Checkbox */}
                   <div className="flex items-center gap-3">
-                    <Checkbox
-                      className="w-5 h-5"
-                      checked={isChecked}
-                      onChange={setIsChecked}
-                    />
+                    <div className={formData.password.length > 0 && !isValidPassword(formData.password) ? "opacity-50 cursor-not-allowed" : ""}>
+                      <Checkbox
+                        className="w-5 h-5"
+                        checked={isChecked}
+                        // Chặn bấm check nếu password chưa hợp lệ
+                        onChange={(val) => {
+                          if (isValidPassword(formData.password)) setIsChecked(val);
+                        }}
+                        disabled={!isValidPassword(formData.password)}
+                      />
+                    </div>
                     <p className="inline-block font-normal text-gray-500 dark:text-gray-400">
                       By creating an account means you agree to the{" "}
                       <span className="text-gray-800 dark:text-white/90">
@@ -260,9 +265,9 @@ export default function SignUpForm() {
                   <div>
                     <button
                       type="submit"
-                      disabled={!isChecked || loading}
+                      disabled={!isChecked || loading || !isValidPassword(formData.password)}
                       className={`flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs 
-                        ${!isChecked ? "opacity-50 cursor-not-allowed" : "hover:bg-brand-600"}`}
+                        ${(!isChecked || !isValidPassword(formData.password)) ? "opacity-50 cursor-not-allowed" : "hover:bg-brand-600"}`}
                     >
                       {loading ? "Processing..." : "Sign Up"}
                     </button>
