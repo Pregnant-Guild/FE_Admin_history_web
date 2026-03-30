@@ -1,7 +1,7 @@
 import { API } from "../../api";
 
 export const apiCreateOTP = async (email : string) => {
-  const token_type = 1;
+  const token_type = 2;
   const response = await fetch(API.User.CREATEOTP, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -10,10 +10,9 @@ export const apiCreateOTP = async (email : string) => {
   return response.json();
 };
 
-export const apiVerifyOTP = async (email: string, otp: string) => {
-
-  const body = { email, otp, token_type: 1 };
-
+export const apiVerifyOTP = async (email: string, token: string) => {
+  const body = { email, token, token_type: 2 };
+  console.log("Request Body for Verify OTP:", body); // Log body trước khi gửi yêu cầu
   const response = await fetch(API.User.VERIFYOTP, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

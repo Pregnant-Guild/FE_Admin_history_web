@@ -76,16 +76,13 @@ export default function SignUpForm() {
     try {
       setLoading(true);
       
-      // 1. Gọi hàm VERIFYOTP
       const verifyRes = await apiVerifyOTP(formData.email, otp);
-      
-      // Giả sử backend trả về token_id khi verify thành công
-      const tokenId = verifyRes?.token_id; 
+
+      const tokenId = verifyRes?.data?.token_id; 
       if (!tokenId) {
         throw new Error("OTP không hợp lệ hoặc không có token_id");
       }
 
-      // 2. Tạo payload và gọi hàm SIGNUP
       const signupPayload = {
         display_name: `${formData.fname} ${formData.lname}`.trim(),
         email: formData.email,
@@ -95,10 +92,10 @@ export default function SignUpForm() {
 
       const signupRes = await apiSignUp(signupPayload);
       
-      // Thành công thì chuyển hướng hoặc thông báo
       console.log("Đăng ký thành công!", signupRes);
       alert("Đăng ký thành công! Đang chuyển hướng...");
-      // window.location.href = '/signin'; // Chuyển hướng người dùng
+
+      window.location.href = '/signin'; // Chuyển hướng người dùng
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Xác thực OTP hoặc đăng ký thất bại.";
