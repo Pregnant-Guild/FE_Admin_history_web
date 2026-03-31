@@ -42,12 +42,8 @@ export const apiSignIn = async (payload: any) => {
 };
 
 export const apiGetCurrentUser = async () => {
-  const response = await fetch(API.User.CURRENT,{
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-  return response.json();
+  const response = await api.get(API.User.CURRENT);
+  return response?.data;
 };
 
 export interface ApiResponse<T> {

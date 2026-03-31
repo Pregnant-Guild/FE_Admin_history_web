@@ -9,6 +9,7 @@ export const API = {
     SIGNIN: `${API_URL_ROOT}/auth/signin`,
     CREATEOTP: `${API_URL_ROOT}/auth/token/create`,
     VERIFYOTP: `${API_URL_ROOT}/auth/token/verify`,
-    REFRESH: `${API_URL_ROOT}/auth/refresh`
+    REFRESH: `${API_URL_ROOT}/auth/refresh`,
+    GOOGLE_LOGIN: `${API_URL_ROOT}/auth/google/login`
   }
 }
