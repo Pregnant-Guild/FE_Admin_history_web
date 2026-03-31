@@ -1,15 +1,84 @@
 "use client";
+
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
+import { apiGetCurrentUser, apiSignIn } from "@/service/auth";
 import Link from "next/link";
 import React, { useState } from "react";
+import { toast } from 'sonner';
+import { API } from "../../../api";
+import api from "@/config/config";
 
 export default function SignInForm() {
-  const [showPassword, setShowPassword] = useState(false);
+const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const isFormEmpty = !formData.email.trim() || !formData.password.trim();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrorMsg(""); 
+  };
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const isValidPassword = (pass: string) => {
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    return passwordRegex.test(pass);
+  };
+
+  const handleSignInClick = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (loading || isFormEmpty) return; 
+
+    setErrorMsg("");
+
+    if (!isValidEmail(formData.email)) {
+      setErrorMsg("Email không đúng định dạng.");
+      return;
+    }
+
+    if (!isValidPassword(formData.password)) {
+      setErrorMsg("Mật khẩu tối thiểu 8 ký tự, 1 in hoa, 1 số và 1 ký tự đặc biệt.");
+      return;
+    }
+
+    try {
+      setLoading(true); 
+      const res = await apiSignIn(formData);
+      console.log("API Sign In Response:", res);
+      
+      const data =  await api.get(API.User.CURRENT);
+      console.log("Current User:", data);
+
+      if (res.status === true) {
+        toast.success('Đăng nhập thành công!');
+        
+      }else{
+         toast.error('Email hoặc mật khẩu không đúng.');
+      }
+
+    } catch (error) {
+      setErrorMsg("Lỗi khi đăng nhập. Vui lòng thử lại.");
+      toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -84,60 +153,73 @@ export default function SignInForm() {
                 </span>
               </div>
             </div>
-            <form>
-              <div className="space-y-6">
-                <div>
-                  <Label>
-                    Email <span className="text-error-500">*</span>{" "}
-                  </Label>
-                  <Input placeholder="info@gmail.com" type="email" />
-                </div>
-                <div>
-                  <Label>
-                    Password <span className="text-error-500">*</span>{" "}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                    />
-                    <span
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                    >
-                      {showPassword ? (
-                        <span className="fill-gray-500 dark:fill-gray-400">
-                          <EyeIcon />
-                        </span>
-                      ) : (
-                        <span className="fill-gray-500 dark:fill-gray-400">
-                          <EyeCloseIcon />
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Checkbox checked={isChecked} onChange={setIsChecked} />
-                    <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                      Keep me logged in
-                    </span>
-                  </div>
-                  <Link
-                    href="/reset-password"
-                    className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <div>
-                  <Button className="w-full" size="sm">
-                    Sign in
-                  </Button>
+           <form onSubmit={handleSignInClick}>
+            <div className="space-y-6">
+              <div>
+                <Label>
+                  Email <span className="text-error-500">*</span>
+                </Label>
+                <Input 
+                  name="email" 
+                  placeholder="info@gmail.com" 
+                  type="email" 
+                  onChange={handleChange} 
+                  defaultValue={formData.email} 
+                />
+              </div>
+              
+              <div>
+                <Label>
+                  Password <span className="text-error-500">*</span>
+                </Label>
+                <div className={`relative ${formData.password.length > 0 && !isValidPassword(formData.password) ? 'border border-red-500 ring-1 ring-red-500 rounded-lg' : ''}`}>
+                  <Input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Min. 8 characters"
+                    onChange={handleChange}
+                    defaultValue={formData.password}
+                  />
+                  <span onClick={() => setShowPassword(!showPassword)} className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2">
+                    {showPassword ? <EyeIcon /> : <EyeCloseIcon />}
+                  </span>
                 </div>
               </div>
-            </form>
+
+              {/* Hiển thị thông báo lỗi nếu có */}
+              {errorMsg && (
+                <p className="text-sm text-red-500 font-medium">{errorMsg}</p>
+              )}
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Checkbox checked={isChecked} onChange={setIsChecked} />
+                  <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
+                    Keep me logged in
+                  </span>
+                </div>
+                <Link href="/reset-password" className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400">
+                  Forgot password?
+                </Link>
+              </div>
+
+              <div>
+                <button 
+                  disabled={loading || isFormEmpty}  
+                  type="submit" 
+                  className={`w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white transition rounded-lg shadow-theme-xs 
+                    ${(loading || isFormEmpty) ? 'bg-gray-400 cursor-not-allowed' : 'bg-brand-500 hover:bg-brand-600'}`}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      Signing in...
+                    </span>
+                  ) : "Sign in"}
+                </button>
+              </div>
+            </div>
+          </form>
 
             <div className="mt-5">
               <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">

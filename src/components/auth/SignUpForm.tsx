@@ -6,13 +6,13 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import { apiCreateOTP, apiSignUp, apiVerifyOTP } from "@/service/auth";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
-  // State quản lý form và luồng
-  const [step, setStep] = useState(1); // 1: Đăng ký, 2: Nhập OTP
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     fname: "",
     lname: "",
@@ -28,20 +28,16 @@ export default function SignUpForm() {
     setErrorMsg(""); 
   };
 
-  // Hàm validate email
   const isValidEmail = (email:string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Hàm validate mật khẩu mới
   const isValidPassword = (pass: string) => {
-    // Tối thiểu 8 ký tự, 1 chữ in hoa, 1 chữ số, 1 ký tự đặc biệt
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
     return passwordRegex.test(pass);
   };
 
-  // Xử lý khi bấm nút Sign Up (Step 1)
   const handleSignUpClick = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
@@ -65,12 +61,12 @@ export default function SignUpForm() {
       setStep(2);
     } catch (error) {
       setErrorMsg("Lỗi khi tạo OTP. Vui lòng thử lại.");
+      toast.error('Tạo OTP thất bại. Vui lòng kiểm tra lại thông tin.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Xử lý khi xác nhận OTP (Step 2)
   const handleVerifyOtpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
@@ -103,7 +99,7 @@ export default function SignUpForm() {
       console.log("Đăng ký thành công!", signupRes);
       alert("Đăng ký thành công! Đang chuyển hướng...");
 
-      window.location.href = '/signin'; // Chuyển hướng người dùng
+      window.location.href = '/signin';
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Xác thực OTP hoặc đăng ký thất bại.";
@@ -144,10 +140,8 @@ export default function SignUpForm() {
             </div>
           )}
 
-          {/* ----- STEP 1: FORM SIGN UP ----- */}
           {step === 1 && (
             <>
-              {/* Các nút đăng ký Social */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
                 <button className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
                   Sign up with Google
@@ -170,7 +164,7 @@ export default function SignUpForm() {
               <form onSubmit={handleSignUpClick}>
                 <div className="space-y-5">
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    {/* First Name */}
+                 
                     <div className="sm:col-span-1">
                       <Label>
                         First Name<span className="text-error-500">*</span>
@@ -183,7 +177,7 @@ export default function SignUpForm() {
                         placeholder="Enter your first name"
                       />
                     </div>
-                    {/* Last Name */}
+                  
                     <div className="sm:col-span-1">
                       <Label>
                         Last Name<span className="text-error-500">*</span>
@@ -198,7 +192,6 @@ export default function SignUpForm() {
                     </div>
                   </div>
 
-                  {/* Email */}
                   <div>
                     <Label>
                       Email<span className="text-error-500">*</span>
@@ -211,12 +204,10 @@ export default function SignUpForm() {
                       placeholder="Enter your email"
                     />
                   </div>
-
-                  {/* Password */}
+              
                   <div>
                     <Label>Password<span className="text-error-500">*</span></Label>
-                    
-                    {/* Thêm style báo đỏ ô nhập nếu pass chưa hợp lệ */}
+                   
                     <div className={`relative ${formData.password.length > 0 && !isValidPassword(formData.password) ? 'border border-red-500 ring-1 ring-red-500 rounded-lg' : ''}`}>
                       <Input
                         name="password"
@@ -230,19 +221,19 @@ export default function SignUpForm() {
                       </span>
                     </div>
 
-                    {/* Gợi ý trực quan cho người dùng */}
+                 
                     <p className={`mt-2 text-xs ${formData.password.length === 0 ? 'text-gray-400' : isValidPassword(formData.password) ? 'text-green-500' : 'text-red-500'}`}>
                       Mật khẩu phải chứa tối thiểu 8 ký tự, 1 chữ cái in hoa, 1 chữ số và 1 ký tự đặc biệt.
                     </p>
                   </div>
 
-                  {/* Checkbox */}
+                 
                   <div className="flex items-center gap-3">
                     <div className={formData.password.length > 0 && !isValidPassword(formData.password) ? "opacity-50 cursor-not-allowed" : ""}>
                       <Checkbox
                         className="w-5 h-5"
                         checked={isChecked}
-                        // Chặn bấm check nếu password chưa hợp lệ
+                       
                         onChange={(val) => {
                           if (isValidPassword(formData.password)) setIsChecked(val);
                         }}
@@ -261,7 +252,7 @@ export default function SignUpForm() {
                     </p>
                   </div>
 
-                  {/* Button */}
+              
                   <div>
                     <button
                       type="submit"
@@ -289,7 +280,6 @@ export default function SignUpForm() {
             </>
           )}
 
-          {/* ----- STEP 2: FORM NHẬP OTP ----- */}
           {step === 2 && (
             <form onSubmit={handleVerifyOtpSubmit}>
               <div className="space-y-5">

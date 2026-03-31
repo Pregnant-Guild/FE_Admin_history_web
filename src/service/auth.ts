@@ -1,8 +1,10 @@
+import axiosInstance from "@/config/axiosInstance";
 import { API } from "../../api";
+import api from "@/config/config";
 
 export const apiCreateOTP = async (email : string) => {
   const token_type = 2;
-  const response = await fetch(API.User.CREATEOTP, {
+  const response = await fetch(API.Auth.CREATEOTP, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, token_type }),
@@ -12,8 +14,7 @@ export const apiCreateOTP = async (email : string) => {
 
 export const apiVerifyOTP = async (email: string, token: string) => {
   const body = { email, token, token_type: 2 };
-  console.log("Request Body for Verify OTP:", body); // Log body trước khi gửi yêu cầu
-  const response = await fetch(API.User.VERIFYOTP, {
+  const response = await fetch(API.Auth.VERIFYOTP, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -22,10 +23,35 @@ export const apiVerifyOTP = async (email: string, token: string) => {
 };
 
 export const apiSignUp = async (payload: any) => {
-  const response = await fetch(API.User.SIGNUP, {
+  const response = await fetch(API.Auth.SIGNUP, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   return response.json();
 };
+
+export const apiSignIn = async (payload: any) => {
+  const response = await fetch(API.Auth.SIGNIN, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  return response.json();
+};
+
+export const apiGetCurrentUser = async () => {
+  const response = await fetch(API.User.CURRENT,{
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  return response.json();
+};
+
+export interface ApiResponse<T> {
+  status: boolean
+  data: T
+  message?: string
+}
