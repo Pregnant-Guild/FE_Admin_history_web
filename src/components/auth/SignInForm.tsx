@@ -58,9 +58,10 @@ const [showPassword, setShowPassword] = useState(false);
 
     try {
       setLoading(true); 
+      
       const res = await apiSignIn(formData);
       console.log("API Sign In Response:", res);
-      
+
       const data =  await api.get(API.User.CURRENT);
       console.log("Current User:", data);
 
