@@ -3,17 +3,20 @@
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
-import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import { apiGetCurrentUser, apiSignIn } from "@/service/auth";
 import Link from "next/link";
 import React, { useState } from "react";
 import { toast } from 'sonner';
 import { API } from "../../../api";
-import api from "@/config/config";
+import { setUserData } from "@/store/features/userSlice";
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
-const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch();
   const [isChecked, setIsChecked] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,11 +63,15 @@ const [showPassword, setShowPassword] = useState(false);
       setLoading(true); 
       const res = await apiSignIn(formData);
       console.log("API Sign In Response:", res);
+
       if (res.status === true) {
         toast.success('Đăng nhập thành công!');
-
         const data =  await apiGetCurrentUser();
-        console.log("Current User:", data);
+        console.log("Current User Data:", data);
+        if (data?.data) {
+          dispatch(setUserData(data.data));
+          // router.push("/profile"); 
+        }
       }else{
          toast.error('Email hoặc mật khẩu không đúng.');
       }
