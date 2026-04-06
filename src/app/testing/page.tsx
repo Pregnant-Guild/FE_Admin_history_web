@@ -1,11 +1,37 @@
-import { API } from "../../../api";
+'use client'; // Bắt buộc phải có dòng này
 
-export default async function GetUser() {
-  let data = await fetch(API.User.CURRENT, {
-    credentials: "include",
-  });
+import { useState, useEffect } from 'react';
+import { apiGetCurrentUser } from "@/service/auth";
 
-  let result = await data.json();
-  console.log("Current User from GetUser component:", result);
-  return <div className="">GetUser</div>;
+export default function GetUser() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const result = await apiGetCurrentUser();
+        console.log("Current User from useEffect:", result);
+        setUser(result);
+      } catch (err) {
+        console.error("Lỗi 401 hoặc lỗi kết nối:", err);
+        // setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []); // Dependency array rỗng để chỉ chạy 1 lần khi mount
+
+  if (loading) return <div>Đang tải thông tin...</div>;
+  if (error) return <div>Bạn chưa đăng nhập (Lỗi 401)</div>;
+
+  return (
+    <div className="">
+      <h1>Thông tin người dùng hiện tại:</h1>
+    </div>
+  );
 }
