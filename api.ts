@@ -1,5 +1,6 @@
 export const API_URL_ROOT = process.env.NEXT_PUBLIC_API_URL_ROOT || "";
 export const URL_MEDIA = "https://cdn.kain.id.vn/history-app/"
+export const HOME_URL = "http://localhost:3000"
 export const API = {
   User : {
     CURRENT: `${API_URL_ROOT}/users/current`,
