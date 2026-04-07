@@ -70,6 +70,7 @@ export default function SignInForm() {
       if (res.status === true) {
         toast.success("Đăng nhập thành công!");
         const data = await apiGetCurrentUser();
+        
         console.log("Current User Data:", data);
         if (data?.data) {
           dispatch(setUserData(data.data));

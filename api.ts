@@ -17,5 +17,8 @@ export const API = {
     VERIFYOTP: `${API_URL_ROOT}/auth/token/verify`,
     REFRESH: `${API_URL_ROOT}/auth/refresh`,
     GOOGLE_LOGIN: `${API_URL_ROOT}/auth/google/login`
+  },
+  Admin:{
+    GET_LIST_USERS: `${API_URL_ROOT}/users`,
   }
 }
