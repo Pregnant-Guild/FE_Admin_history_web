@@ -30,3 +30,4 @@ export const apiGetCurrentUser = async () => {
   const response = await api.get(API.User.CURRENT);
   return response?.data;
 };
+

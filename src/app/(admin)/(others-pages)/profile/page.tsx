@@ -2,8 +2,10 @@
 
 import UserAddressCard from "@/components/user-profile/UserAddressCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
-import UserMetaCard, { UserMetaCardProps } from "@/components/user-profile/UserMetaCard";
+import UserMetaCard from "@/components/user-profile/UserMetaCard";
+import { UserMetaCardProps } from "@/interface/user";
 import { apiGetCurrentUser } from "@/service/auth";
+import { apiGetCurrentUserMedia } from "@/service/userService";
 import { RootState } from "@/store/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -16,7 +18,9 @@ export default function Profile() {
     const fetchUser = async () => {
       try {
         const result = await apiGetCurrentUser();
+        const mediaResult = await apiGetCurrentUserMedia();
         console.log("Current User:", result);
+        console.log("User Media:", mediaResult);
         setUser(result);
       } catch (err) {
         console.error("Lỗi:", err);
@@ -35,7 +39,7 @@ export default function Profile() {
         </h3>
         <div className="space-y-6">
           <UserMetaCard data={user ?? {}} />
-          <UserInfoCard />
+          <UserInfoCard data={user ?? {}} />
           <UserAddressCard />
         </div>
       </div>

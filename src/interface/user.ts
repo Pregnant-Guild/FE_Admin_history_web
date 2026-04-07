@@ -25,3 +25,29 @@ export interface UserData {
     roles: UserRole[];
 }
 
+export interface Profile {
+  avatar_url?: string;
+  bio?: string;
+  country_code?: string;
+  display_name?: string;
+  full_name?: string;
+  location?: string;
+  phone?: string;
+  website?: string;
+}
+export interface Data {
+  email?: string;
+  profile?: Profile;
+  roles?: Role[];
+  id: string;
+}
+export interface Role {
+  id?: number;
+  name?: string;
+}
+
+export interface UserMetaCardProps {
+  message?: string;
+  status?: boolean;
+  data?: Data;
+}

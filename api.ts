@@ -2,7 +2,9 @@ export const API_URL_ROOT = process.env.NEXT_PUBLIC_API_URL_ROOT || "";
 
 export const API = {
   User : {
-    CURRENT: `${API_URL_ROOT}/users/current`
+    CURRENT: `${API_URL_ROOT}/users/current`,
+    MEDIA: `${API_URL_ROOT}/users/current/media`,
+    Update:  (Id: number | string) => `${API_URL_ROOT}/users/${Id}`,
   },
   Auth : {
     SIGNUP: `${API_URL_ROOT}/auth/signup`,

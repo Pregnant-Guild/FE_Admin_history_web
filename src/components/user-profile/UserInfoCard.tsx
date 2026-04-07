@@ -1,17 +1,60 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { Profile, UserMetaCardProps } from "@/interface/user";
+import { apiUpdateUser } from "@/service/userService";
+import { toast } from "sonner";
+import Link from "next/link";
 
-export default function UserInfoCard() {
+export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
+  const router = useRouter();
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+  // 1. Khởi tạo state cho form
+  const [formData, setFormData] = useState<Profile>({
+    display_name: "",
+    phone: "",
+    bio: "",
+    location: "",
+    website: "",
+    // Thêm các field khác nếu cần
+  });
+
+  useEffect(() => {
+    if (data?.data?.profile) {
+      setFormData({
+        display_name: data.data.profile.display_name || "",
+        phone: data.data.profile.phone || "",
+        bio: data.data.profile.bio || "",
+        location: data.data.profile.location || "",
+        website: data.data.profile.website || "",
+      });
+    }
+  }, [data, isOpen]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    try {
+      const userId = data?.data?.id;
+      if (userId) {
+        await apiUpdateUser(userId, formData);
+        toast.success("Cập nhật thành công!");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật profile:", error);
+    }
   };
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -24,28 +67,18 @@ export default function UserInfoCard() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                First Name
+                Full Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Musharof
+                {data.data?.profile?.display_name || "Full Name"}
               </p>
             </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Last Name
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Chowdhury
-              </p>
-            </div>
-
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
+                {data.data?.email || "Email address"}
               </p>
             </div>
 
@@ -54,7 +87,7 @@ export default function UserInfoCard() {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
+                {data.data?.profile?.phone || "+123 456 7890"}
               </p>
             </div>
 
@@ -63,8 +96,30 @@ export default function UserInfoCard() {
                 Bio
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Team Manager
+                {data.data?.profile?.bio || "No bio available"}
               </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Address
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {data.data?.profile?.location || "No location available"}
+              </p>
+            </div>
+             <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Website
+              </p>
+              <Link 
+                href={data.data?.profile?.website || "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-gray-800 dark:text-white/90 hover:text-blue-500 dark:hover:text-blue-400"
+              >
+                {data.data?.profile?.website || "No website"}
+              </Link>
             </div>
           </div>
         </div>
@@ -73,13 +128,12 @@ export default function UserInfoCard() {
           onClick={openModal}
           className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
         >
+          {/* SVG giữ nguyên */}
           <svg
             className="fill-current"
             width="18"
             height="18"
             viewBox="0 0 18 18"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               fillRule="evenodd"
@@ -102,82 +156,84 @@ export default function UserInfoCard() {
               Update your details to keep your profile up-to-date.
             </p>
           </div>
-          <form className="flex flex-col">
+          <form className="flex flex-col" onSubmit={handleSave}>
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-              <div>
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Social Links
-                </h5>
-
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <Label>Facebook</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.facebook.com/PimjoHQ"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>X.com</Label>
-                    <Input type="text" defaultValue="https://x.com/PimjoHQ" />
-                  </div>
-
-                  <div>
-                    <Label>Linkedin</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.linkedin.com/company/pimjo"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://instagram.com/PimjoHQ"
-                    />
-                  </div>
-                </div>
-              </div>
               <div className="mt-7">
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
                   Personal Information
                 </h5>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>First Name</Label>
-                    <Input type="text" defaultValue="Musharof" />
-                  </div>
-
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>Last Name</Label>
-                    <Input type="text" defaultValue="Chowdhury" />
+                  <div className="col-span-2">
+                    <Label>Display Name</Label>
+                    <Input
+                      type="text"
+                      name="display_name"
+                      defaultValue={formData.display_name}
+                      onChange={handleChange}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Email Address</Label>
-                    <Input type="text" defaultValue="randomuser@pimjo.com" />
+                    <Input
+                      type="text"
+                      disabled
+                      defaultValue={data.data?.email}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" defaultValue="+09 363 398 46" />
+                    <Input
+                      type="text"
+                      name="phone"
+                      defaultValue={formData.phone}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label>Location</Label>
+                    <Input
+                      type="text"
+                      name="location"
+                      defaultValue={formData.location}
+                      onChange={handleChange}
+                    />
                   </div>
 
                   <div className="col-span-2">
                     <Label>Bio</Label>
-                    <Input type="text" defaultValue="Team Manager" />
+                    <Input
+                      type="text"
+                      name="bio"
+                      defaultValue={formData.bio}
+                      onChange={handleChange}
+                    />
+                  </div>
+                   <div className="col-span-2">
+                    <Label>Website</Label>
+                    <Input
+                      type="text"
+                      name="website"
+                      defaultValue={formData.website}
+                      onChange={handleChange}
+                    />
                   </div>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={closeModal}
+              >
                 Close
               </Button>
-              <Button size="sm" onClick={handleSave}>
+              <Button size="sm" type="submit">
                 Save Changes
               </Button>
             </div>

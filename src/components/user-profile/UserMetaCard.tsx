@@ -6,31 +6,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Image from "next/image";
-interface Profile {
-  avatar_url?: string;
-  bio?: string;
-  country_code?: string;
-  display_name?: string;
-  full_name?: string;
-  location?: string;
-  phone?: string;
-  website?: string;
-}
-interface Data {
-  email?: string;
-  profile?: Profile;
-  roles?: Role[];
-}
-interface Role {
-  id?: number;
-  name?: string;
-}
-
-export interface UserMetaCardProps {
-  message?: string;
-  status?: boolean;
-  data?: Data;
-}
+import { UserMetaCardProps } from "@/interface/user";
 
 export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
   const { isOpen, openModal, closeModal } = useModal();
@@ -48,13 +24,13 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
               <Image
                 width={80}
                 height={80}
-                src= {data.data?.profile?.avatar_url || "/images/no-images.jpg"}
-                alt="user"
+                src={data.data?.profile?.avatar_url || "/images/no-images.jpg"}
+                alt="avatar"
               />
             </div>
             <div className="order-3 xl:order-2">
               <h4 className="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                {data.data?.profile?.display_name || "Unknown User"}
+                {data.data?.profile?.display_name || "Full Name"}
               </h4>
               <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -63,6 +39,11 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
                 <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {data.data?.profile?.location || "user location"}
+                </p>
+                <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
+                <p className="text-sm text-blue-500 dark:text-gray-400">
+                  {data.data?.roles?.map((role) => role.name).join(", ") ||
+                    "No roles available"}
                 </p>
               </div>
             </div>
@@ -160,7 +141,7 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
           </button> */}
         </div>
       </div>
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
+      {/* <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
@@ -251,7 +232,7 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
             </div>
           </form>
         </div>
-      </Modal>
+      </Modal> */}
     </>
   );
 }
