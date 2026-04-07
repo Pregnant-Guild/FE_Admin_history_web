@@ -1,20 +1,15 @@
 "use client";
-import React from "react";
-import { useModal } from "../../hooks/useModal";
-import { Modal } from "../ui/modal";
-import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import Label from "../form/Label";
+// import React from "react";
+// import { useModal } from "../../hooks/useModal";
+// import { Modal } from "../ui/modal";
+// import Button from "../ui/button/Button";
+// import Input from "../form/input/InputField";
+// import Label from "../form/Label";
 import Image from "next/image";
 import { UserMetaCardProps } from "@/interface/user";
 
 export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
-  const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    console.log("Saving changes...");
-    closeModal();
-  };
-  console.log("UserMetaCard data:", data.data?.profile?.display_name);
+  // const { isOpen, openModal, closeModal } = useModal();
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -33,17 +28,17 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
                 {data.data?.profile?.display_name || "Full Name"}
               </h4>
               <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
+                <p className="text-sm text-blue-500 dark:text-gray-400">
+                  {data.data?.roles?.map((role) => role.name).join(", ") ||
+                    "No roles available"}
+                </p>
+                <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {data.data?.profile?.bio || "No bio available"}
                 </p>
                 <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {data.data?.profile?.location || "user location"}
-                </p>
-                <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                <p className="text-sm text-blue-500 dark:text-gray-400">
-                  {data.data?.roles?.map((role) => role.name).join(", ") ||
-                    "No roles available"}
                 </p>
               </div>
             </div>

@@ -14,14 +14,13 @@ import Link from "next/link";
 export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
   const router = useRouter();
   const { isOpen, openModal, closeModal } = useModal();
-  // 1. Khởi tạo state cho form
   const [formData, setFormData] = useState<Profile>({
     display_name: "",
     phone: "",
     bio: "",
     location: "",
     website: "",
-    // Thêm các field khác nếu cần
+    avatar_url: "",
   });
 
   useEffect(() => {
@@ -32,6 +31,7 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
         bio: data.data.profile.bio || "",
         location: data.data.profile.location || "",
         website: data.data.profile.website || "",
+        avatar_url: data.data.profile.avatar_url || "",
       });
     }
   }, [data, isOpen]);
@@ -65,6 +65,14 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
           </h4>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
+            {/* <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Avatar
+              </p>
+               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {data.data?.profile?.avatar_url || "avatar_url"}
+              </p>
+            </div> */}
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Full Name
@@ -164,6 +172,15 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
                 </h5>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                  <div className="col-span-2">
+                    <Label>Avatar</Label>
+                    <Input
+                      type="text"
+                      name="avatar_url"
+                      defaultValue={formData.avatar_url}
+                      onChange={handleChange}
+                    />
+                  </div>
                   <div className="col-span-2">
                     <Label>Display Name</Label>
                     <Input

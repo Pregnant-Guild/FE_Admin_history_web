@@ -1,35 +1,36 @@
 "use client";
 
-import UserAddressCard from "@/components/user-profile/UserAddressCard";
+import AccountDetails from "@/components/user-profile/AccountDetails";
+import MediaCard from "@/components/user-profile/Media";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
+import { MediaDto } from "@/interface/media";
 import { UserMetaCardProps } from "@/interface/user";
 import { apiGetCurrentUser } from "@/service/auth";
 import { apiGetCurrentUserMedia } from "@/service/userService";
-import { RootState } from "@/store/store";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 
 export default function Profile() {
   const [user, setUser] = useState<UserMetaCardProps | null>(null);
+  const [mediaData, setMediaData] = useState<MediaDto | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const result = await apiGetCurrentUser();
-        const mediaResult = await apiGetCurrentUserMedia();
-        console.log("Current User:", result);
-        console.log("User Media:", mediaResult);
-        setUser(result);
-      } catch (err) {
-        console.error("Lỗi:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
+ useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const userData = await apiGetCurrentUser();
+      const mediaResponse = await apiGetCurrentUserMedia(); // Giả sử hàm này return {status, data, message}
+
+      setMediaData(mediaResponse);
+      setUser(userData);
+    } catch (err) {
+      console.error("Lỗi:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchUser();
+}, []);
 
   return (
     <div>
@@ -40,7 +41,8 @@ export default function Profile() {
         <div className="space-y-6">
           <UserMetaCard data={user ?? {}} />
           <UserInfoCard data={user ?? {}} />
-          <UserAddressCard />
+          <AccountDetails data={user ?? {}} />
+          <MediaCard data={mediaData ?? {}} />
         </div>
       </div>
     </div>

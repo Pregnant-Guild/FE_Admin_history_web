@@ -73,7 +73,7 @@ export default function SignInForm() {
         console.log("Current User Data:", data);
         if (data?.data) {
           dispatch(setUserData(data.data));
-          // router.push("/profile");
+          router.push("/");
         }
       } else {
         toast.error("Email hoặc mật khẩu không đúng.");
