@@ -65,13 +65,13 @@ export default function SignInForm() {
       setLoading(true);
       
       const res = await apiSignIn(formData);
-      console.log("API Sign In Response:", res);
+      // console.log("API Sign In Response:", res);
 
       if (res.status === true) {
         toast.success("Đăng nhập thành công!");
         const data = await apiGetCurrentUser();
         
-        console.log("Current User Data:", data);
+        // console.log("Current User Data:", data);
         if (data?.data) {
           dispatch(setUserData(data.data));
           router.push("/");

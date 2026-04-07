@@ -1,4 +1,4 @@
-'use client'; // Bắt buộc phải có dòng này
+'use client'; 
 
 import { useState, useEffect } from 'react';
 import { apiGetCurrentUser } from "@/service/auth";
@@ -13,10 +13,10 @@ export default function GetUser() {
       try {
         setLoading(true);
         const result = await apiGetCurrentUser();
-        console.log("Current User from useEffect:", result);
+        // console.log("Current User from useEffect:", result);
         setUser(result);
       } catch (err) {
-        console.error("Lỗi 401 hoặc lỗi kết nối:", err);
+        // console.error("Lỗi 401 hoặc lỗi kết nối:", err);
         // setError(err);
       } finally {
         setLoading(false);
@@ -24,7 +24,7 @@ export default function GetUser() {
     };
 
     fetchUser();
-  }, []); // Dependency array rỗng để chỉ chạy 1 lần khi mount
+  }, []); 
 
   if (loading) return <div>Đang tải thông tin...</div>;
   if (error) return <div>Bạn chưa đăng nhập (Lỗi 401)</div>;

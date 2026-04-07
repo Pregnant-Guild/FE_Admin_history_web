@@ -100,12 +100,8 @@ export default function SignUpForm() {
         password: formData.password,
         token_id: tokenId,
       };
-      
 
       const signupRes = await apiSignUp(signupPayload);
-      console.log("API Sign Up Response:", signupRes);
-
-      console.log("Đăng ký thành công!", signupRes);
       alert("Đăng ký thành công! Đang chuyển hướng...");
 
       window.location.href = "/signin";
