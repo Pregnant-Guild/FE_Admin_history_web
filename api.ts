@@ -18,9 +18,15 @@ export const API = {
     CREATEOTP: `${API_URL_ROOT}/auth/token/create`,
     VERIFYOTP: `${API_URL_ROOT}/auth/token/verify`,
     REFRESH: `${API_URL_ROOT}/auth/refresh`,
-    GOOGLE_LOGIN: `${API_URL_ROOT}/auth/google/login`
+    GOOGLE_LOGIN: `${API_URL_ROOT}/auth/google/login`,
+    FORGOT_PASSWORD: `${API_URL_ROOT}/auth/forgot-password`,
   },
   Admin:{
     GET_LIST_USERS: `${API_URL_ROOT}/users`,
+    CHANGE_ROLE: (Id: number | string) => `${API_URL_ROOT}/users/${Id}/role`,
+    DELETE_USER: (Id: number | string) => `${API_URL_ROOT}/users/${Id}`,
+    RESTORE_USER: (Id: number | string) => `${API_URL_ROOT}/users/${Id}/restore`,
+    GET_USER_MEDIA: (Id: number | string) => `${API_URL_ROOT}/users/${Id}/media`,
+    GET_ALL_ROLE: `${API_URL_ROOT}/roles`
   }
 }

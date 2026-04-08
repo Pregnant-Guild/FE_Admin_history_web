@@ -11,23 +11,24 @@ import Badge from "../ui/badge/Badge";
 import Image from "next/image";
 import { fullDataUser } from "@/interface/admin";
 
-// Kiểu dữ liệu sort dựa trên UserTable
 type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
 interface BasicTableOneProps {
   data: fullDataUser[];
   onSort: (column: SortColumn) => void;
+  onViewDetail: (user: fullDataUser) => void; 
   sortBy?: SortColumn;
   sortOrder?: "asc" | "desc";
 }
 
 export default function BasicTableOne({
-  data,
+ data,
   onSort,
+  onViewDetail,
   sortBy,
   sortOrder,
 }: BasicTableOneProps) {
-  // Format ngày tháng: 08 Apr 2026
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -38,7 +39,6 @@ export default function BasicTableOne({
     });
   };
 
-  // Component icon sắp xếp
   const SortIcon = ({ column }: { column: SortColumn }) => {
     const isActive = sortBy === column;
     return (
@@ -78,7 +78,6 @@ export default function BasicTableOne({
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
-        {/* Đảm bảo bảng có chiều rộng tối thiểu để không bị nát layout trên mobile */}
         <div className="min-w-[1100px]">
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
@@ -146,6 +145,9 @@ export default function BasicTableOne({
                     <SortIcon column="updated_at" />
                   </div>
                 </TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">
+                  Thao tác
+                </TableCell>
               </TableRow>
             </TableHeader>
 
@@ -156,7 +158,6 @@ export default function BasicTableOne({
                     key={user.id}
                     className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors"
                   >
-                    {/* Cột Tên + Avatar */}
                     <TableCell className="px-5 py-4 text-start">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 overflow-hidden rounded-full flex-shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
@@ -185,12 +186,10 @@ export default function BasicTableOne({
                       </div>
                     </TableCell>
 
-                    {/* Cột Email */}
                     <TableCell className="px-5 py-4 text-gray-600 text-start text-theme-sm dark:text-gray-400">
                       {user.email}
                     </TableCell>
 
-                    {/* Cột Roles (Badge list) */}
                     <TableCell className="px-5 py-4 text-start text-theme-sm">
                       <div className="flex flex-wrap gap-1">
                         {user.roles && user.roles.length > 0 ? (
@@ -208,7 +207,6 @@ export default function BasicTableOne({
                       </div>
                     </TableCell>
 
-                    {/* Cột Trạng thái (Sử dụng Badge component) */}
                     <TableCell className="px-5 py-4 text-start">
                       <Badge
                         size="sm"
@@ -219,15 +217,22 @@ export default function BasicTableOne({
                       </Badge>
                     </TableCell>
 
-                    {/* Cột Ngày tham gia */}
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
                       {formatDate(user.created_at)}
                     </TableCell>
 
-                    {/* Cột Ngày cập nhật */}
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
                       {formatDate(user.updated_at)}
                     </TableCell>
+
+                    <TableCell className="px-5 py-4 text-center">
+                    <button
+                      onClick={() => onViewDetail(user)}
+                      className="text-brand-500 hover:text-brand-600 font-medium text-theme-sm transition-colors"
+                    >
+                      Chi tiết
+                    </button>
+                  </TableCell>
                   </TableRow>
                 ))
               ) : (

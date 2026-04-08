@@ -2,39 +2,48 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import BasicTableOne from "@/components/tables/BasicTableOne";
-import { responseUserTable, getUserDto } from "@/interface/admin";
-import { apiGetListUser } from "@/service/adminService";
+import ChangeRoleModal from "@/components/tables/ChangeRoleModal";
+import UserDetailModal from "@/components/tables/UserDetailModal";
+import { Modal } from "@/components/ui/modal";
+import { responseUserTable, getUserDto, fullDataUser } from "@/interface/admin";
+import {
+  apiDeleteUser,
+  apiGetListUser,
+  apiRestoreUser,
+} from "@/service/adminService";
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
 export default function UserTable() {
-  // --- States cho Pagination ---
-  const [limit, setLimit] = useState<number>(5); // Default theo ảnh là 5
+  const [limit, setLimit] = useState<number>(5); 
   const [limitInput, setLimitInput] = useState<string>("5");
   const [page, setPage] = useState<number>(1);
 
-  // --- States cho Filter (Theo ảnh Swagger) ---
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [authProvider, setAuthProvider] = useState<string>("");
   const [createdFrom, setCreatedFrom] = useState<string>("");
   const [createdTo, setCreatedTo] = useState<string>("");
   const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
-  
-  // Debounced states
+
+  const [selectedUser, setSelectedUser] = useState<fullDataUser | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [roleUser, setRoleUser] = useState<fullDataUser | null>(null);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+
   const [debouncedParams, setDebouncedParams] = useState({
     search: "",
     limit: 5,
     authProvider: "",
   });
 
-  // --- States cho Table ---
   const [tableData, setTableData] = useState<responseUserTable | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [sortBy, setSortBy] = useState<SortColumn | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // 1. Xử lý Debounce cho các ô input text
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedParams({
@@ -42,12 +51,11 @@ export default function UserTable() {
         limit: parseInt(limitInput) || 5,
         authProvider: authProvider,
       });
-      setPage(1); // Reset về trang 1 khi filter thay đổi
+      setPage(1);
     }, 600);
     return () => clearTimeout(handler);
   }, [searchTerm, limitInput, authProvider]);
 
-  // 2. Hàm fetch data
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
@@ -73,7 +81,15 @@ export default function UserTable() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedParams, createdFrom, createdTo, isDeleted, sortBy, sortOrder]);
+  }, [
+    page,
+    debouncedParams,
+    createdFrom,
+    createdTo,
+    isDeleted,
+    sortBy,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     fetchUsers();
@@ -91,6 +107,42 @@ export default function UserTable() {
 
   const pagination = tableData?.pagination;
 
+  const handleOpenDetail = (user: fullDataUser) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+  const handleOpenRoleModal = (user: fullDataUser) => {
+    setRoleUser(user);
+    setIsRoleModalOpen(true);
+  };
+
+  const handleDelete = async (user: fullDataUser) => {
+    const confirmMessage = `Bạn có chắc chắn muốn khóa/xóa người dùng ${user.profile?.display_name || user.email}?`;
+    if (window.confirm(confirmMessage)) {
+      try {
+        await apiDeleteUser(user.id);
+        toast.success("Đã khóa người dùng thành công!");
+        fetchUsers();
+      } catch (err) {
+        console.error(err);
+        toast.error("Đã xảy ra lỗi khi xóa!");
+      }
+    }
+  };
+
+  const handleRestore = async (user: fullDataUser) => {
+    const confirmMessage = `Bạn có chắc chắn muốn khôi phục người dùng ${user.profile?.display_name || user.email}?`;
+    if (window.confirm(confirmMessage)) {
+      try {
+        await apiRestoreUser(user.id);
+        toast.success("Khôi phục người dùng thành công!");
+        fetchUsers(); 
+      } catch (err) {
+        console.error(err);
+        toast.error("Đã xảy ra lỗi khi khôi phục!");
+      }
+    }
+  };
   return (
     <div>
       <PageBreadcrumb pageTitle="Quản lý người dùng" />
@@ -112,7 +164,9 @@ export default function UserTable() {
 
             {/* Auth Provider */}
             <div>
-              <label className="block mb-2 text-sm font-medium">Auth Provider</label>
+              <label className="block mb-2 text-sm font-medium">
+                Auth Provider
+              </label>
               <input
                 type="text"
                 placeholder="google"
@@ -122,11 +176,18 @@ export default function UserTable() {
               />
             </div>
 
-            
             <div>
-              <label className="block mb-2 text-sm font-medium">Trạng thái xóa</label>
-              <select 
-                onChange={(e) => setIsDeleted(e.target.value === "" ? undefined : e.target.value === "true")}
+              <label className="block mb-2 text-sm font-medium">
+                Trạng thái xóa
+              </label>
+              <select
+                onChange={(e) =>
+                  setIsDeleted(
+                    e.target.value === ""
+                      ? undefined
+                      : e.target.value === "true",
+                  )
+                }
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
               >
                 <option value="">Tất cả</option>
@@ -137,7 +198,9 @@ export default function UserTable() {
 
             {/* Limit */}
             <div>
-              <label className="block mb-2 text-sm font-medium">Số lượng (Limit)</label>
+              <label className="block mb-2 text-sm font-medium">
+                Số lượng (Limit)
+              </label>
               <input
                 type="number"
                 value={limitInput}
@@ -156,36 +219,58 @@ export default function UserTable() {
               </div>
             )}
 
-            <BasicTableOne 
-              data={tableData?.data || []} 
-              onSort={handleSort} 
-              sortBy={sortBy} 
-              sortOrder={sortOrder} 
+            <BasicTableOne
+              data={tableData?.data || []}
+              onSort={handleSort}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onViewDetail={handleOpenDetail}
             />
           </div>
 
-          {/* Phân trang sử dụng data từ API mới */}
           <div className="flex items-center justify-between mt-6">
             <p className="text-sm text-gray-500">
-              Hiển thị trang {pagination?.current_page} / {pagination?.total_pages} ({pagination?.total_records} kết quả)
+              Hiển thị trang {pagination?.current_page} /{" "}
+              {pagination?.total_pages} ({pagination?.total_records} kết quả)
             </p>
             <div className="flex gap-2">
               <button
                 disabled={page <= 1 || loading}
-                onClick={() => setPage(p => p - 1)}
+                onClick={() => setPage((p) => p - 1)}
                 className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Trước
               </button>
               <button
                 disabled={page >= (pagination?.total_pages || 1) || loading}
-                onClick={() => setPage(p => p + 1)}
+                onClick={() => setPage((p) => p + 1)}
                 className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Sau
               </button>
             </div>
           </div>
+          <UserDetailModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            user={selectedUser}
+            onChangeRole={handleOpenRoleModal}
+            onDelete={(u) => {
+              handleDelete(u);
+              setIsModalOpen(false);
+            }}
+            onRestore={(u) => {
+              handleRestore(u);
+              setIsModalOpen(false);
+            }}
+          />
+
+          <ChangeRoleModal
+            isOpen={isRoleModalOpen}
+            onClose={() => setIsRoleModalOpen(false)}
+            user={roleUser}
+            onSuccess={fetchUsers}
+          />
         </ComponentCard>
       </div>
     </div>

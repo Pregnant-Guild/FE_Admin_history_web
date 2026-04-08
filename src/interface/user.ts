@@ -50,4 +50,5 @@ export interface UserMetaCardProps {
   message?: string;
   status?: boolean;
   data?: Data;
+  openEdit?: boolean;
 }

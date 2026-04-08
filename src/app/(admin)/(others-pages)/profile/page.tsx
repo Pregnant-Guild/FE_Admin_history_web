@@ -39,7 +39,7 @@ export default function Profile() {
         </h3>
         <div className="space-y-6">
           <UserMetaCard data={user ?? {}} />
-          <UserInfoCard data={user ?? {}} />
+          <UserInfoCard data={{ ...user, openEdit: true }} />
           {(mediaData?.data?.length ?? 0) > 0 && <MediaCard data={mediaData ?? {}} />}
           <AccountDetails data={user ?? {}} />
         </div>
