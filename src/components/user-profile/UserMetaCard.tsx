@@ -33,7 +33,7 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
                     "No roles available"}
                 </p>
                 <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-[450px] truncate">
                   {data.data?.profile?.bio || "No bio available"}
                 </p>
                 <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>

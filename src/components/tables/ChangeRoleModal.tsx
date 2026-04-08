@@ -18,6 +18,8 @@ interface ChangeRoleModalProps {
   onSuccess: () => void;
 }
 
+const DEFAULT_ROLE_NAME = "USER";
+
 export default function ChangeRoleModal({ isOpen, onClose, user, onSuccess }: ChangeRoleModalProps) {
   const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
@@ -42,9 +44,13 @@ export default function ChangeRoleModal({ isOpen, onClose, user, onSuccess }: Ch
     }
   }, [isOpen, user]);
 
-  const handleToggleRole = (roleId: string) => {
+  const handleToggleRole = (roleId: string, isDefault: boolean) => {
+    if (isDefault) return;
+
     setSelectedRoleIds((prev) =>
-      prev.includes(roleId) ? prev.filter((id) => id !== roleId) : [...prev, roleId]
+      prev.includes(roleId) 
+        ? prev.filter((id) => id !== roleId) 
+        : [...prev, roleId]
     );
   };
 
@@ -54,11 +60,12 @@ export default function ChangeRoleModal({ isOpen, onClose, user, onSuccess }: Ch
 
     try {
       setLoading(true);
+      
       const payload = {
         role_ids: selectedRoleIds,
         user_id: user.id,
       };
-      console.log("Payload gửi lên API:", payload);
+
       await apiChangeRole(user.id, payload);
       toast.success("Cập nhật vai trò thành công!");
       onSuccess();
@@ -95,20 +102,42 @@ export default function ChangeRoleModal({ isOpen, onClose, user, onSuccess }: Ch
             <div className="flex flex-col space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar -mx-2 px-2">
               {roles.map((role) => {
                 const isSelected = selectedRoleIds.includes(role.id);
+                const isDefault = role.name === DEFAULT_ROLE_NAME;
+
                 return (
                   <label
                     key={role.id}
-                    className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
+                      isDefault 
+                        ? "opacity-40 cursor-not-allowed bg-gray-50 dark:bg-gray-800/30" 
+                        : "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    }`}
                   >
                     <input
                       type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleToggleRole(role.id)}
-                      className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
+                      checked={isDefault ? true : isSelected}
+                      onChange={() => handleToggleRole(role.id, isDefault)}
+                      disabled={isDefault}
+                      className={`w-4 h-4 rounded border-gray-300 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 ${
+                        isDefault ? "text-gray-400" : "text-brand-500"
+                      }`}
                     />
-                    <span className={`text-sm ${isSelected ? "text-gray-900 dark:text-white font-medium" : "text-gray-700 dark:text-gray-300"}`}>
-                      {role.name}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className={`text-sm ${
+                        isDefault 
+                          ? "text-gray-500 font-normal" 
+                          : isSelected 
+                            ? "text-gray-900 dark:text-white font-medium" 
+                            : "text-gray-700 dark:text-gray-300"
+                      }`}>
+                        {role.name}
+                      </span>
+                      {isDefault && (
+                        <span className="text-[10px] text-gray-400 italic">
+                          Mặc định không thể xóa
+                        </span>
+                      )}
+                    </div>
                   </label>
                 );
               })}

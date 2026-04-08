@@ -72,6 +72,7 @@ export default function UserTable() {
       };
 
       const response = await apiGetListUser(payload);
+
       if (response?.status) {
         setTableData(response);
       }

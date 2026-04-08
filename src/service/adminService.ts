@@ -11,7 +11,7 @@ export const apiGetListUser = async (payload: getUserDto) => {
 
 export const apiChangeRole = async (id: string, payload: any) => {
   const response = await api.patch(API.Admin.CHANGE_ROLE(id), payload);
-  console.log("Response từ API sau khi đổi role:", response);
+  // console.log("Response từ API sau khi đổi role:", response);
   return response?.data;
 };
 export const apiDeleteUser = async (id: string) => {
