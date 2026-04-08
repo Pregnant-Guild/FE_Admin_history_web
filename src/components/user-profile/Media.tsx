@@ -19,8 +19,8 @@ export default function MediaCard({ data }: { data: MediaDto }) {
   }));
 
   return (
-    <div className="w-full">
-      <h3 className="mb-4 font-semibold">Media Assets</h3>
+    <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Media Assets</h3>
 
       <div className="flex flex-row gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {listMedia.map((item, idx) => (

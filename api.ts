@@ -12,6 +12,7 @@ export const API = {
     PRESIGNED: `${API_URL_ROOT}/media/presigned`
   },
   Auth : {
+    LOGOUT: `${API_URL_ROOT}/auth/logout`,
     SIGNUP: `${API_URL_ROOT}/auth/signup`,
     SIGNIN: `${API_URL_ROOT}/auth/signin`,
     CREATEOTP: `${API_URL_ROOT}/auth/token/create`,

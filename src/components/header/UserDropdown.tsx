@@ -6,9 +6,12 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { fullDataUser } from "@/interface/admin";
 import { UserMetaCardProps } from "@/interface/user";
-import { apiGetCurrentUser } from "@/service/auth";
+import { apiGetCurrentUser, apiLogout } from "@/service/auth";
+import { useRouter } from "next/navigation";
 
 export default function UserDropdown() {
+  const router = useRouter();
+
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<UserMetaCardProps | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -25,7 +28,7 @@ export default function UserDropdown() {
     const fetchUser = async () => {
       try {
         const userData = await apiGetCurrentUser();
-        console.log("User data in dropdown:", userData);
+        // console.log("User data in dropdown:", userData);
         setUser(userData);
       } catch (err) {
         console.error("Lỗi:", err);
@@ -35,7 +38,27 @@ export default function UserDropdown() {
     };
     fetchUser();
   }, []);
-  
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    try {
+      await apiLogout();
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+
+      window.location.href = "/signin";
+    }
+  };
 
   return (
     <div className="relative">
@@ -168,6 +191,7 @@ export default function UserDropdown() {
           </li>
         </ul>
         <Link
+          onClick={handleLogout}
           href="/signin"
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >

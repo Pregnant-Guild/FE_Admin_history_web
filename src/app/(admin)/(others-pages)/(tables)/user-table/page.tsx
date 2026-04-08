@@ -2,62 +2,85 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import BasicTableOne from "@/components/tables/BasicTableOne";
-import { fullDataUser, getUserDto } from "@/interface/admin";
+import { responseUserTable, getUserDto } from "@/interface/admin";
 import { apiGetListUser } from "@/service/adminService";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-// Trích xuất type sort cho dễ tái sử dụng
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
 export default function UserTable() {
-  const [users, setUsers] = useState<fullDataUser[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  // --- States cho Pagination ---
+  const [limit, setLimit] = useState<number>(5); // Default theo ảnh là 5
+  const [limitInput, setLimitInput] = useState<string>("5");
+  const [page, setPage] = useState<number>(1);
 
+  // --- States cho Filter (Theo ảnh Swagger) ---
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [authProvider, setAuthProvider] = useState<string>("");
+  const [createdFrom, setCreatedFrom] = useState<string>("");
+  const [createdTo, setCreatedTo] = useState<string>("");
+  const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
+  
+  // Debounced states
+  const [debouncedParams, setDebouncedParams] = useState({
+    search: "",
+    limit: 5,
+    authProvider: "",
+  });
 
+  // --- States cho Table ---
+  const [tableData, setTableData] = useState<responseUserTable | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [sortBy, setSortBy] = useState<SortColumn | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  // 1. Xử lý Debounce cho các ô input text
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 500);
-
+      setDebouncedParams({
+        search: searchTerm,
+        limit: parseInt(limitInput) || 5,
+        authProvider: authProvider,
+      });
+      setPage(1); // Reset về trang 1 khi filter thay đổi
+    }, 600);
     return () => clearTimeout(handler);
-  }, [searchTerm]);
+  }, [searchTerm, limitInput, authProvider]);
+
+  // 2. Hàm fetch data
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const payload: getUserDto = {
+        page: page,
+        limit: debouncedParams.limit,
+        search: debouncedParams.search || undefined,
+        auth_provider: debouncedParams.authProvider || undefined,
+        created_from: createdFrom || undefined,
+        created_to: createdTo || undefined,
+        is_deleted: isDeleted,
+        sort: sortBy,
+        order: sortOrder,
+      };
+
+      const response = await apiGetListUser(payload);
+      if (response?.status) {
+        setTableData(response);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setTableData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, debouncedParams, createdFrom, createdTo, isDeleted, sortBy, sortOrder]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      setLoading(true);
-      try {
-        const payload: getUserDto = { limit: 10 };
-        if (debouncedSearch) payload.search = debouncedSearch;
-        if (sortBy) {
-          payload.sort = sortBy;
-          payload.order = sortOrder;
-        }
-
-        const response = await apiGetListUser(payload);
-        // console.log("Request Payload:", payload);
-        // console.log("API Response:", response);
-        if (response && response.data) {
-          setUsers(response.data);
-        } else {
-          setUsers([]);
-        }
-      } catch (err) {
-        console.error("Lỗi:", err);
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [debouncedSearch, sortBy, sortOrder]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleSort = (column: SortColumn) => {
+    setPage(1);
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -66,43 +89,102 @@ export default function UserTable() {
     }
   };
 
+  const pagination = tableData?.pagination;
+
   return (
     <div>
-      <PageBreadcrumb pageTitle="Users Table" />
+      <PageBreadcrumb pageTitle="Quản lý người dùng" />
       <div className="space-y-6">
-        <ComponentCard title="Danh sách người dùng">
-          {/* Ô nhập tìm kiếm */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Tìm kiếm người dùng..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-1/3 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-          </div>
+        <ComponentCard title="Bộ lọc tìm kiếm">
+          {/* Grid Layout cho các Filter giống Swagger */}
+          <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3 lg:grid-cols-4">
+            {/* Search */}
+            <div>
+              <label className="block mb-2 text-sm font-medium">Search</label>
+              <input
+                type="text"
+                placeholder="Name, email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+              />
+            </div>
 
-          <div className="relative min-h-[400px]">
+            {/* Auth Provider */}
+            <div>
+              <label className="block mb-2 text-sm font-medium">Auth Provider</label>
+              <input
+                type="text"
+                placeholder="google"
+                value={authProvider}
+                onChange={(e) => setAuthProvider(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+              />
+            </div>
+
+            
+            <div>
+              <label className="block mb-2 text-sm font-medium">Trạng thái xóa</label>
+              <select 
+                onChange={(e) => setIsDeleted(e.target.value === "" ? undefined : e.target.value === "true")}
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+              >
+                <option value="">Tất cả</option>
+                <option value="false">Hoạt động</option>
+                <option value="true">Đã xóa</option>
+              </select>
+            </div>
+
+            {/* Limit */}
+            <div>
+              <label className="block mb-2 text-sm font-medium">Số lượng (Limit)</label>
+              <input
+                type="number"
+                value={limitInput}
+                onChange={(e) => setLimitInput(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+              />
+            </div>
+          </div>
+        </ComponentCard>
+
+        <ComponentCard title="Danh sách người dùng">
+          <div className="relative min-h-[300px]">
             {loading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-[1px] transition-opacity">
-                <div className="flex flex-col items-center">
-                  {/* Spinner xoay tròn */}
-                  <div className="w-10 h-10 border-4 border-gray-200 border-t-brand-500 rounded-full animate-spin"></div>
-                  <p className="mt-2 text-sm font-medium text-gray-500">
-                    Đang tải...
-                  </p>
-                </div>
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 dark:bg-gray-900/50">
+                <div className="w-10 h-10 border-4 border-t-brand-500 rounded-full animate-spin"></div>
               </div>
             )}
 
-            {/* Bảng vẫn hiển thị ở dưới (mờ đi) hoặc ẩn tùy bạn, 
-                nhưng truyền data vào để tránh giật lag layout */}
-            <BasicTableOne
-              data={users}
-              onSort={handleSort}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
+            <BasicTableOne 
+              data={tableData?.data || []} 
+              onSort={handleSort} 
+              sortBy={sortBy} 
+              sortOrder={sortOrder} 
             />
+          </div>
+
+          {/* Phân trang sử dụng data từ API mới */}
+          <div className="flex items-center justify-between mt-6">
+            <p className="text-sm text-gray-500">
+              Hiển thị trang {pagination?.current_page} / {pagination?.total_pages} ({pagination?.total_records} kết quả)
+            </p>
+            <div className="flex gap-2">
+              <button
+                disabled={page <= 1 || loading}
+                onClick={() => setPage(p => p - 1)}
+                className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                Trước
+              </button>
+              <button
+                disabled={page >= (pagination?.total_pages || 1) || loading}
+                onClick={() => setPage(p => p + 1)}
+                className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                Sau
+              </button>
+            </div>
           </div>
         </ComponentCard>
       </div>

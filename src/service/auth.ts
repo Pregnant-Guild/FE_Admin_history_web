@@ -21,6 +21,11 @@ export const apiSignUp = async (payload: any) => {
   return response.data;
 };
 
+export const apiLogout = async () => {
+  const response = await api.post(API.Auth.LOGOUT);
+  return response.data;
+};
+
 export const apiSignIn = async (payload: any) => {
   const response = await api.post(API.Auth.SIGNIN, payload);
   return response.data;

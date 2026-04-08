@@ -1,13 +1,17 @@
 import { Profile, UserRole } from "@/interface/user";
 
 export interface getUserDto {
-  cursor?: string;
+  page?: number; // Thay cursor bằng page theo Swagger
   limit: number;
   is_deleted?: boolean;
   order?: "asc" | "desc";
   role_ids?: string[];
-  search?: string;  
+  search?: string;
   sort?: "created_at" | "updated_at" | "display_name" | "email";
+  // Thêm các trường mới từ ảnh Swagger
+  auth_provider?: string;
+  created_from?: string;
+  created_to?: string;
 }
 
 export interface fullDataUser {
@@ -23,4 +27,16 @@ export interface fullDataUser {
   roles: UserRole[];
   profile: Profile;
   token_version: number;
+}
+
+export interface responseUserTable {
+  data: fullDataUser[];
+  status: boolean;
+  message?: string;
+  pagination?: {
+    current_page: number;
+    page_size: number;
+    total_records: number;
+    total_pages: number;
+  };
 }

@@ -80,7 +80,7 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
 
   return (
     <>
-      <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+      <div className="p-5 border border-red-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
@@ -108,7 +108,7 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
 
           <button
             onClick={openModal}
-            className="flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 lg:inline-flex lg:w-auto"
+            className="flex items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-4 py-3 text-sm font-medium text-red-600 hover:bg-gray-50 dark:border-red-700 dark:bg-red-800 dark:text-red-400 lg:inline-flex lg:w-auto"
           >
             <svg
               className="fill-current"
@@ -211,7 +211,7 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
               >
                 Close
               </Button>
-              <Button size="sm" type="submit">
+              <Button size="sm" type="submit" className="bg-red-500 hover:bg-red-600 ">
                 Save Changes
               </Button>
             </div>
