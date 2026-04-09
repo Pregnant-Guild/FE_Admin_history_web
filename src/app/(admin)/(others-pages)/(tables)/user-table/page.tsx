@@ -8,6 +8,7 @@ import { Modal } from "@/components/ui/modal";
 import { responseUserTable, getUserDto, fullDataUser } from "@/interface/admin";
 import {
   apiDeleteUser,
+  apiGetAllRole,
   apiGetListUser,
   apiRestoreUser,
 } from "@/service/adminService";
@@ -17,19 +18,18 @@ import { toast } from "sonner";
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
 export default function UserTable() {
-  const [limit, setLimit] = useState<number>(5); 
-  const [limitInput, setLimitInput] = useState<string>("5");
   const [page, setPage] = useState<number>(1);
+  const [limitInput, setLimitInput] = useState<string>("5");
+
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [authProvider, setAuthProvider] = useState<string>("");
-  const [createdFrom, setCreatedFrom] = useState<string>("");
-  const [createdTo, setCreatedTo] = useState<string>("");
   const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
 
   const [selectedUser, setSelectedUser] = useState<fullDataUser | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [roleUser, setRoleUser] = useState<fullDataUser | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
 
@@ -44,6 +44,21 @@ export default function UserTable() {
   const [sortBy, setSortBy] = useState<SortColumn | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await apiGetAllRole();
+        console.log("Danh sách role:", res);
+        if (res?.status) {
+          setRoles(res.data);
+        }
+      } catch (err) {
+        console.error("Lỗi lấy danh sách role:", err);
+      }
+    };
+    fetchRoles();
+  }, []);
+  console.log("Roles đã fetch:", roles);
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedParams({
@@ -64,15 +79,13 @@ export default function UserTable() {
         limit: debouncedParams.limit,
         search: debouncedParams.search || undefined,
         auth_provider: debouncedParams.authProvider || undefined,
-        created_from: createdFrom || undefined,
-        created_to: createdTo || undefined,
         is_deleted: isDeleted,
         sort: sortBy,
         order: sortOrder,
+        role_ids: selectedRole ? [selectedRole] : undefined,
       };
 
       const response = await apiGetListUser(payload);
-
       if (response?.status) {
         setTableData(response);
       }
@@ -82,15 +95,7 @@ export default function UserTable() {
     } finally {
       setLoading(false);
     }
-  }, [
-    page,
-    debouncedParams,
-    createdFrom,
-    createdTo,
-    isDeleted,
-    sortBy,
-    sortOrder,
-  ]);
+  }, [page, debouncedParams, isDeleted, sortBy, sortOrder, selectedRole]);
 
   useEffect(() => {
     fetchUsers();
@@ -112,34 +117,39 @@ export default function UserTable() {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
+
   const handleOpenRoleModal = (user: fullDataUser) => {
     setRoleUser(user);
     setIsRoleModalOpen(true);
   };
 
   const handleDelete = async (user: fullDataUser) => {
-    const confirmMessage = `Bạn có chắc chắn muốn khóa/xóa người dùng ${user.profile?.display_name || user.email}?`;
-    if (window.confirm(confirmMessage)) {
+    if (
+      window.confirm(
+        `Khóa người dùng ${user.profile?.display_name || user.email}?`,
+      )
+    ) {
       try {
         await apiDeleteUser(user.id);
         toast.success("Đã khóa người dùng thành công!");
         fetchUsers();
       } catch (err) {
-        console.error(err);
         toast.error("Đã xảy ra lỗi khi xóa!");
       }
     }
   };
 
   const handleRestore = async (user: fullDataUser) => {
-    const confirmMessage = `Bạn có chắc chắn muốn khôi phục người dùng ${user.profile?.display_name || user.email}?`;
-    if (window.confirm(confirmMessage)) {
+    if (
+      window.confirm(
+        `Khôi phục người dùng ${user.profile?.display_name || user.email}?`,
+      )
+    ) {
       try {
         await apiRestoreUser(user.id);
         toast.success("Khôi phục người dùng thành công!");
-        fetchUsers(); 
+        fetchUsers();
       } catch (err) {
-        console.error(err);
         toast.error("Đã xảy ra lỗi khi khôi phục!");
       }
     }
@@ -149,9 +159,7 @@ export default function UserTable() {
       <PageBreadcrumb pageTitle="Quản lý người dùng" />
       <div className="space-y-6">
         <ComponentCard title="Bộ lọc tìm kiếm">
-          {/* Grid Layout cho các Filter giống Swagger */}
           <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3 lg:grid-cols-4">
-            {/* Search */}
             <div>
               <label className="block mb-2 text-sm font-medium">Search</label>
               <input
@@ -168,13 +176,14 @@ export default function UserTable() {
               <label className="block mb-2 text-sm font-medium">
                 Auth Provider
               </label>
-              <input
-                type="text"
-                placeholder="google"
+              <select
                 value={authProvider}
                 onChange={(e) => setAuthProvider(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-              />
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 cursor-pointer bg-white"
+              >
+                <option value="">Tất cả</option>
+                <option value="google">Google</option>
+              </select>
             </div>
 
             <div>
@@ -226,6 +235,9 @@ export default function UserTable() {
               sortBy={sortBy}
               sortOrder={sortOrder}
               onViewDetail={handleOpenDetail}
+              roles={roles}
+              selectedRole={selectedRole}
+              onFilterRole={(role) => setSelectedRole(role)}
             />
           </div>
 

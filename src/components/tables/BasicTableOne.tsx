@@ -13,22 +13,32 @@ import { fullDataUser } from "@/interface/admin";
 
 type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
+interface Role {
+  id: string;
+  name: string;
+}
+
 interface BasicTableOneProps {
   data: fullDataUser[];
   onSort: (column: SortColumn) => void;
-  onViewDetail: (user: fullDataUser) => void; 
+  onViewDetail: (user: fullDataUser) => void;
   sortBy?: SortColumn;
   sortOrder?: "asc" | "desc";
+  onFilterRole?: (role: string) => void;
+  selectedRole?: string;
+  roles?: Role[];
 }
 
 export default function BasicTableOne({
- data,
+  data,
   onSort,
   onViewDetail,
   sortBy,
   sortOrder,
+  onFilterRole,
+  selectedRole,
+  roles = [],
 }: BasicTableOneProps) {
-
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -48,7 +58,6 @@ export default function BasicTableOne({
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
         >
           <path
             strokeLinecap="round"
@@ -62,7 +71,6 @@ export default function BasicTableOne({
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
         >
           <path
             strokeLinecap="round"
@@ -84,27 +92,58 @@ export default function BasicTableOne({
               <TableRow>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[265px] max-w-[265px]"
                 >
                   <div
                     className="flex items-center cursor-pointer select-none"
                     onClick={() => onSort("display_name")}
                   >
-                    Người dùng
-                    <SortIcon column="display_name" />
+                    Người dùng <SortIcon column="display_name" />
                   </div>
                 </TableCell>
 
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[337px] max-w-[337px]"
                 >
                   <div
                     className="flex items-center cursor-pointer select-none"
                     onClick={() => onSort("email")}
                   >
-                    Email
-                    <SortIcon column="email" />
+                    Email <SortIcon column="email" />
+                  </div>
+                </TableCell>
+
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-start text-theme-xs min-w-[188px] max-w-[188px]"
+                >
+                  <div className="relative inline-flex items-center group">
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => onFilterRole?.(e.target.value)}
+                      className="bg-transparent border-none outline-none cursor-pointer appearance-none text-gray-500 dark:text-gray-400 pr-5 hover:text-brand-500 transition-colors font-medium"
+                    >
+                      <option value="">Vai trò (Tất cả)</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
+                    </select>
+                    <svg
+                      className="w-3 h-3 absolute right-0 text-gray-400 pointer-events-none group-hover:text-brand-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </div>
                 </TableCell>
 
@@ -112,11 +151,6 @@ export default function BasicTableOne({
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Vai trò
-                </TableCell>
-
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                 
                   Trạng thái
                 </TableCell>
 
@@ -128,8 +162,7 @@ export default function BasicTableOne({
                     className="flex items-center cursor-pointer select-none"
                     onClick={() => onSort("created_at")}
                   >
-                    Ngày tham gia
-                    <SortIcon column="created_at" />
+                    Ngày tham gia <SortIcon column="created_at" />
                   </div>
                 </TableCell>
 
@@ -141,11 +174,14 @@ export default function BasicTableOne({
                     className="flex items-center cursor-pointer select-none"
                     onClick={() => onSort("updated_at")}
                   >
-                    Cập nhật
-                    <SortIcon column="updated_at" />
+                    Cập nhật <SortIcon column="updated_at" />
                   </div>
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">
+
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
+                >
                   Thao tác
                 </TableCell>
               </TableRow>
@@ -166,7 +202,7 @@ export default function BasicTableOne({
                               width={40}
                               height={40}
                               src={user.profile.avatar_url}
-                              alt={user.profile.display_name || "Avatar"}
+                              alt="Avatar"
                               className="object-cover w-full h-full"
                             />
                           ) : (
@@ -192,17 +228,17 @@ export default function BasicTableOne({
 
                     <TableCell className="px-5 py-4 text-start text-theme-sm">
                       <div className="flex flex-wrap gap-1">
-                        {user.roles && user.roles.length > 0 ? (
-                          user.roles.map((role) => (
-                            <span
-                              key={role.id}
-                              className="px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400 text-[10px] font-normal uppercase tracking-wider"
-                            >
-                              {role.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-gray-400 italic">No Role</span>
+                        {user.roles?.map((role) => (
+                          <span
+                            key={role.id}
+                            className="px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400 text-[10px] uppercase"
+                          >
+                            {role.name}
+                          </span>
+                        )) || (
+                          <span className="text-gray-400 italic text-[10px]">
+                            No Role
+                          </span>
                         )}
                       </div>
                     </TableCell>
@@ -220,27 +256,35 @@ export default function BasicTableOne({
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
                       {formatDate(user.created_at)}
                     </TableCell>
-
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
                       {formatDate(user.updated_at)}
                     </TableCell>
 
                     <TableCell className="px-5 py-4 text-center">
-                    <button
-                      onClick={() => onViewDetail(user)}
-                      className="text-brand-500 hover:text-brand-600 font-medium text-theme-sm transition-colors"
-                    >
-                      Chi tiết
-                    </button>
-                  </TableCell>
+                      <button
+                        onClick={() => onViewDetail(user)}
+                        className="text-brand-500 hover:text-brand-600 font-medium text-theme-sm"
+                      >
+                        Chi tiết
+                      </button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell className="px-5 py-4 text-center text-gray-500 italic"> </TableCell>
+                  <TableCell
+                    colSpan={7}
+                    className="px-5 py-24 text-center text-gray-500 italic"
+                  >
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <p className="text-theme-sm">
+                        Không tìm thấy dữ liệu người dùng
+                      </p>
+                    </div>
+                  </TableCell>
                 </TableRow>
               )}
-            </TableBody> 
+            </TableBody>
           </Table>
         </div>
       </div>

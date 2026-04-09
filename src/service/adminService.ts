@@ -22,6 +22,7 @@ export const apiRestoreUser = async (id: string) => {
   const response = await api.patch(API.Admin.RESTORE_USER(id));
   return response?.data;
 };
+
 export const apiGetAllRole = async () => {
   const response = await api.get(API.Admin.GET_ALL_ROLE);
   return response?.data;
