@@ -89,46 +89,53 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
                 {data.data?.email || "Email address"}
               </p>
             </div>
+            {data.data?.profile?.phone && (
+              <div>
+                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                  Phone
+                </p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {data.data?.profile?.phone || "+XXX XXX XXX"}
+                </p>
+              </div>
+            )}
 
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Phone
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {data.data?.profile?.phone || "+XXX XXX XXX"}
-              </p>
-            </div>
+            {data.data?.profile?.bio && (
+              <div>
+                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                  Bio
+                </p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {data.data?.profile?.bio || "No bio available"}
+                </p>
+              </div>
+            )}
 
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Bio
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {data.data?.profile?.bio || "No bio available"}
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Address
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {data.data?.profile?.location || "No location available"}
-              </p>
-            </div>
-             <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Website
-              </p>
-              <Link 
-                href={data.data?.profile?.website || "#"} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-gray-800 dark:text-white/90 hover:text-blue-500 dark:hover:text-blue-400"
-              >
-                {data.data?.profile?.website || "No website"}
-              </Link>
-            </div>
+            {data.data?.profile?.location && (
+              <div>
+                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                  Address
+                </p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {data.data?.profile?.location || "No location available"}
+                </p>
+              </div>
+            )}
+            {data.data?.profile?.website && (
+              <div>
+                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                  Website
+                </p>
+                <Link
+                  href={data.data?.profile?.website || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-gray-800 dark:text-white/90 hover:text-blue-500 dark:hover:text-blue-400"
+                >
+                  {data.data?.profile?.website || "No website"}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
@@ -230,7 +237,7 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
                       onChange={handleChange}
                     />
                   </div>
-                   <div className="col-span-2">
+                  <div className="col-span-2">
                     <Label>Website</Label>
                     <Input
                       type="text"
