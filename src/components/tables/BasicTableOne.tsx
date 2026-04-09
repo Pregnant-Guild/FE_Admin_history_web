@@ -54,7 +54,7 @@ export default function BasicTableOne({
     return (
       <div className="flex flex-col ml-2 opacity-50 cursor-pointer hover:opacity-100">
         <svg
-          className={`w-3 h-3 ${isActive && sortOrder === "asc" ? "text-brand-500 opacity-100" : "text-gray-400"}`}
+          className={`w-3 h-3 ${isActive && sortOrder === "asc" ? "text-blue-700 opacity-100" : "text-gray-400"}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -67,7 +67,7 @@ export default function BasicTableOne({
           />
         </svg>
         <svg
-          className={`w-3 h-3 -mt-1 ${isActive && sortOrder === "desc" ? "text-brand-500 opacity-100" : "text-gray-400"}`}
+          className={`w-3 h-3 -mt-1 ${isActive && sortOrder === "desc" ? "text-blue-700 opacity-100" : "text-gray-400"}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

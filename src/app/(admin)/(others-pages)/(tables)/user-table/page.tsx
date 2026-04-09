@@ -1,10 +1,10 @@
 "use client";
 import ComponentCard from "@/components/common/ComponentCard";
+import Swal from "sweetalert2";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import BasicTableOne from "@/components/tables/BasicTableOne";
 import ChangeRoleModal from "@/components/tables/ChangeRoleModal";
 import UserDetailModal from "@/components/tables/UserDetailModal";
-import { Modal } from "@/components/ui/modal";
 import { responseUserTable, getUserDto, fullDataUser } from "@/interface/admin";
 import {
   apiDeleteUser,
@@ -13,7 +13,7 @@ import {
   apiRestoreUser,
 } from "@/service/adminService";
 import { useEffect, useState, useCallback } from "react";
-import { toast } from "sonner";
+import Pagination from "@/components/tables/Pagination";
 
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
@@ -48,7 +48,6 @@ export default function UserTable() {
     const fetchRoles = async () => {
       try {
         const res = await apiGetAllRole();
-        console.log("Danh sách role:", res);
         if (res?.status) {
           setRoles(res.data);
         }
@@ -58,7 +57,7 @@ export default function UserTable() {
     };
     fetchRoles();
   }, []);
-  console.log("Roles đã fetch:", roles);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedParams({
@@ -124,36 +123,57 @@ export default function UserTable() {
   };
 
   const handleDelete = async (user: fullDataUser) => {
-    if (
-      window.confirm(
-        `Khóa người dùng ${user.profile?.display_name || user.email}?`,
-      )
-    ) {
+    const result = await Swal.fire({
+      title: "Xác nhận khóa?",
+      text: `Bạn có chắc muốn khóa người dùng ${user.profile?.display_name || user.email}?`,
+      icon: "warning",
+      showCancelButton: true,
+      showCloseButton: true, 
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Đồng ý, khóa!",
+      cancelButtonText: "Hủy",
+      reverseButtons: true, 
+    });
+
+    if (result.isConfirmed) {
       try {
         await apiDeleteUser(user.id);
-        toast.success("Đã khóa người dùng thành công!");
+        Swal.fire(
+          "Đã khóa!",
+          "Người dùng đã bị tạm dừng hoạt động.",
+          "success",
+        );
         fetchUsers();
       } catch (err) {
-        toast.error("Đã xảy ra lỗi khi xóa!");
+        Swal.fire("Lỗi!", "Không thể thực hiện thao tác này.", "error");
       }
     }
   };
 
   const handleRestore = async (user: fullDataUser) => {
-    if (
-      window.confirm(
-        `Khôi phục người dùng ${user.profile?.display_name || user.email}?`,
-      )
-    ) {
+    const result = await Swal.fire({
+      title: "Khôi phục tài khoản?",
+      text: `Khôi phục quyền truy cập cho ${user.profile?.display_name || user.email}?`,
+      icon: "question",
+      showCancelButton: true,
+      showCloseButton: true,
+      confirmButtonColor: "#28a745",
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Hủy",
+    });
+
+    if (result.isConfirmed) {
       try {
         await apiRestoreUser(user.id);
-        toast.success("Khôi phục người dùng thành công!");
+        Swal.fire("Thành công", "Tài khoản đã được khôi phục.", "success");
         fetchUsers();
       } catch (err) {
-        toast.error("Đã xảy ra lỗi khi khôi phục!");
+        Swal.fire("Thất bại", "Vui lòng thử lại sau.", "error");
       }
     }
   };
+
   return (
     <div>
       <PageBreadcrumb pageTitle="Quản lý người dùng" />
@@ -171,7 +191,6 @@ export default function UserTable() {
               />
             </div>
 
-            {/* Auth Provider */}
             <div>
               <label className="block mb-2 text-sm font-medium">
                 Auth Provider
@@ -243,26 +262,19 @@ export default function UserTable() {
 
           <div className="flex items-center justify-between mt-6">
             <p className="text-sm text-gray-500">
-              Hiển thị trang {pagination?.current_page} /{" "}
-              {pagination?.total_pages} ({pagination?.total_records} kết quả)
+              Hiển thị trang {pagination?.current_page || 1} /{" "}
+              {pagination?.total_pages || 1} ({pagination?.total_records || 0} kết quả)
             </p>
-            <div className="flex gap-2">
-              <button
-                disabled={page <= 1 || loading}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                Trước
-              </button>
-              <button
-                disabled={page >= (pagination?.total_pages || 1) || loading}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                Sau
-              </button>
-            </div>
+            
+            {pagination && pagination.total_pages > 1 && (
+              <Pagination
+                currentPage={pagination.current_page}
+                totalPages={pagination.total_pages}
+                onPageChange={(newPage) => setPage(newPage)}
+              />
+            )}
           </div>
+
           <UserDetailModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
