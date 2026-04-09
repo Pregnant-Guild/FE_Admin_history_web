@@ -17,7 +17,7 @@ export default function MediaCard({ data }: { data: MediaDto }) {
     title: item.original_name,
     description: `Size: ${(item.size / 1024).toFixed(2)} KB - Type: ${item.mime_type}`,
   }));
-
+  // console.log("slides", listMedia);
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Media Assets</h3>

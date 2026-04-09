@@ -1,10 +1,87 @@
 import api from "@/config/config";
 import { API } from "../../api";
 import { payloadPresignedMedia } from "@/interface/media";
+import axios from "axios";
 
-export const apiGetCurrentUserMedia = async (payload: payloadPresignedMedia) => {
+export const apiGetCurrentUserMedia = async (
+  payload: payloadPresignedMedia,
+) => {
   const response = await api.get(API.Media.PRESIGNED, {
     params: payload,
   });
   return response?.data;
+};
+
+export type FileType =
+  | "image"
+  | "video"
+  | "audio"
+  | "pdf"
+  | "docx"
+  | "text"
+  | "other";
+
+export const getFileType = (mime: string): FileType => {
+  if (!mime) return "other";
+
+  if (mime.startsWith("image/")) return "image";
+  if (mime.startsWith("video/")) return "video";
+  if (mime.startsWith("audio/")) return "audio";
+
+  if (mime === "application/pdf") return "pdf";
+
+  if (
+    mime ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  )
+    return "docx";
+
+  if (mime.startsWith("text/")) return "text";
+
+  return "other";
+};
+
+type PreSignedResponse = {
+  token_id: string;
+  upload_url: string;
+  storage_key: string;
+  signed_headers: Record<string, string>;
+};
+
+export const uploadFileToS3 = async (
+  file: File,
+  presigned: PreSignedResponse,
+) => {
+  await axios.put(presigned.upload_url, file, {
+    headers: {
+      ...presigned.signed_headers,
+      "Content-Type": file.type,
+    },
+  });
+};
+
+export const confirmUpload = async (token_id: string) => {
+  const res = await api.post("/media/presigned/complete", {
+    token_id,
+  });
+
+  return res.data;
+};
+export const uploadMedia = async (file: File) => {
+  const { data: presigned } = await api.get<PreSignedResponse>(
+    "/media/presigned",
+    {
+      params: {
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      },
+    },
+  );
+
+  await uploadFileToS3(file, presigned);
+
+  const media = await confirmUpload(presigned.token_id);
+
+  return media;
 };
