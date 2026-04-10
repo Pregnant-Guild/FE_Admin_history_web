@@ -45,17 +45,42 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
   };
 
   const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const userId = data?.data?.id;
+    if (!userId) return;
+
     try {
-      const userId = data?.data?.id;
-      if (userId) {
-        await apiUpdateUser(userId, formData);
-        toast.success("Cập nhật thành công!");
-        router.refresh();
+      const response = await apiUpdateUser(userId, formData);
+
+      if (response && response.status === false) {
+        toast.error(response.message || "Cập nhật thất bại.");
+        return;
       }
-    } catch (error) {
-      console.error("Lỗi khi cập nhật profile:", error);
+
+      toast.success("Cập nhật thành công!");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error: any) {
+      const serverResponse = error.response?.data;
+
+      if (serverResponse && serverResponse.status === false) {
+        const msg = serverResponse.message || "";
+
+        if (msg.includes("idx_user_profiles_phone")) {
+          toast.error("Số điện thoại này đã được sử dụng!");
+        } else {
+          toast.error(msg);
+        }
+      } else {
+        toast.error("Không thể kết nối đến máy chủ hoặc lỗi hệ thống.");
+      }
+
+      console.error("Lỗi chi tiết:", error);
     }
   };
+
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -187,6 +212,7 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
                       name="avatar_url"
                       defaultValue={formData.avatar_url}
                       onChange={handleChange}
+                      disabled
                     />
                   </div>
                   <div className="col-span-2">

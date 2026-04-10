@@ -17,7 +17,8 @@ import Pagination from "@/components/tables/Pagination";
 
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
-export default function UserTable() {
+export default function UserTable() { // UserTable
+
   const [page, setPage] = useState<number>(1);
   const [limitInput, setLimitInput] = useState<string>("5");
 
