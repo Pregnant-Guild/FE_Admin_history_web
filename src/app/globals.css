@@ -769,3 +769,43 @@ html {
   background-color: rgba(0, 0, 0, .5);
   box-shadow: 0 0 1px rgba(255, 255, 255, .5);
 }
+
+.ql-editor pre.ql-syntax {
+  background-color: #23241f;
+  color: #f8f8f2;
+  overflow: visible;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background-color: #f9fafb;
+  padding: 12px !important;
+}
+
+.ql-container.ql-snow {
+  border: none !important;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+}
+
+.ql-editor {
+  min-height: 400px;
+  line-height: 1.6;
+}
+
+.dark .ql-toolbar.ql-snow {
+  background-color: #1f2937;
+  border-bottom: 1px solid #374151 !important;
+  color: #f3f4f6;
+}
+
+.dark .ql-snow .ql-stroke {
+  stroke: #d1d5db;
+}
+
+.dark .ql-editor {
+  color: #f3f4f6;
+}

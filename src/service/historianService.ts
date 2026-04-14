@@ -1,0 +1,13 @@
+import api from "@/config/config";
+import { API } from "../../api";
+
+export const createHistorianCV = async (payload: any) => {
+  const response = await api.post(API.Historian.CREATE_CV, payload);
+  return response?.data;
+};
+
+export const apiGetUserApplications = async (payload :any) => {
+  const response = await api.get(API.Historian.APPLICATION, { params: payload });
+  // console.log("API Response:", response.data);
+  return response?.data;
+};

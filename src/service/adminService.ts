@@ -11,7 +11,6 @@ export const apiGetListUser = async (payload: getUserDto) => {
 
 export const apiChangeRole = async (id: string, payload: any) => {
   const response = await api.patch(API.Admin.CHANGE_ROLE(id), payload);
-  // console.log("Response từ API sau khi đổi role:", response);
   return response?.data;
 };
 export const apiDeleteUser = async (id: string) => {
@@ -30,5 +29,16 @@ export const apiGetAllRole = async () => {
 
 export const apiGetUserMedia = async (id: string) => {
   const response = await api.get(API.Admin.GET_USER_MEDIA(id));
+  return response?.data;
+};
+
+export const apiUpdateApplicationStatus = async (id: string, payload: any) => {
+  const response = await api.patch(API.Admin.UPDATE_APPLICATION_STATUS(id), payload);
+  return response?.data;
+};
+
+export const apiGetUserById = async (userId: string) => {
+  // Thay đổi URL sao cho khớp với route Backend của bạn
+  const response = await api.get(API.Admin.GET_USER_BY_ID(userId)); 
   return response?.data;
 };

@@ -7,6 +7,11 @@ export const apiGetCurrentUserMedia = async () => {
   return response?.data;
 };
 
+export const apiGetCurrentUserApplications = async () => {
+  const response = await api.get(API.User.APPLICATION);
+  return response?.data;
+};
+
 export const apiUpdateUser = async (id: number | string, payload: Profile) => {
   const response = await api.put(API.User.Update(id), payload);
   return response?.data;

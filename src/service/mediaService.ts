@@ -88,3 +88,23 @@ export const uploadMedia = async (file: File) => {
   // console.log("Media sau khi upload:", media);
   return media;
 };
+
+export const getPresignedUrl = async (file: File) => {
+  const { data: presigned } = await api.get<PreSignedResponse>(
+    "/media/presigned",
+    {
+      params: {
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      },
+    },
+  );
+  return presigned;
+};
+
+export const getMediaById = async (mediaId: number | string) => {
+  const response = await api.get(API.Media.GET_MEDIA_BY_ID(mediaId));
+  return response?.data;
+}
+
