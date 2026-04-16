@@ -17,5 +17,5 @@ export interface MediaDto {
 
 export interface payloadPresignedMedia {
   filename:string;
-  contentType:string;
+  content_type:string;
 }

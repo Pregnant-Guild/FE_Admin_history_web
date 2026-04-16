@@ -33,7 +33,7 @@ export const apiGetUserMedia = async (id: string) => {
 };
 
 export const apiUpdateApplicationStatus = async (id: string, payload: any) => {
-  const response = await api.patch(API.Admin.UPDATE_APPLICATION_STATUS(id), payload);
+  const response = await api.put(API.Admin.UPDATE_APPLICATION_STATUS(id), payload);
   return response?.data;
 };
 

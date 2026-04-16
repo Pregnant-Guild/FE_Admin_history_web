@@ -9,6 +9,8 @@ import {
   apiUpdateApplicationStatus,
 } from "@/service/adminService";
 import { getMediaById } from "@/service/mediaService";
+import Link from "next/link";
+import { URL_MEDIA } from "../../../api";
 
 interface Props {
   isOpen: boolean;
@@ -23,6 +25,7 @@ export default function ApplicationDetailModal({
   application,
   onRefresh,
 }: Props) {
+
   const [userData, setUserData] = useState<any>(null);
   const [mediaList, setMediaList] = useState<any[]>([]);
   const [reviewNote, setReviewNote] = useState("");
@@ -46,7 +49,7 @@ export default function ApplicationDetailModal({
     try {
       const userRes = await apiGetUserById(application.user_id);
 
-      console.log("User data:", userRes);
+      // console.log("User data:", userRes);
 
       if (userRes?.data) setUserData(userRes.data);
 
@@ -55,7 +58,7 @@ export default function ApplicationDetailModal({
           getMediaById(m.id),
         );
         const mediaResponses = await Promise.all(mediaPromises);
-      
+
         setMediaList(mediaResponses.map((res) => res?.data || res));
       }
     } catch (error) {
@@ -83,7 +86,7 @@ export default function ApplicationDetailModal({
         status: status,
         review_note: reviewNote,
       };
-
+      // console.log("Payload gửi lên API:", payload, "Application ID:", application.id);
       await apiUpdateApplicationStatus(application.id, payload);
 
       Swal.fire(
@@ -115,7 +118,6 @@ export default function ApplicationDetailModal({
     if (isImage || isPdf) {
       window.open(media.url, "_blank");
     } else {
-    
       const link = document.createElement("a");
       link.href = media.url;
       link.download = media.original_name || "download";
@@ -124,6 +126,9 @@ export default function ApplicationDetailModal({
       document.body.removeChild(link);
     }
   };
+
+  // console.log("ApplicationDetailModal:", application);
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl shadow-xl dark:bg-gray-900 flex flex-col overflow-hidden">
@@ -186,15 +191,12 @@ export default function ApplicationDetailModal({
                     </p>
                     <div className="mt-1">
                       <span className="px-2 py-0.5 text-[10px] font-medium tracking-wide text-blue-600 bg-blue-100 rounded-full dark:bg-blue-500/20 dark:text-blue-400">
-                        {application.verify_type === 1
-                          ? "CĂN CƯỚC CÔNG DÂN"
-                          : "BẰNG CẤP / KHÁC"}
+                        {application.verify_type}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
-
               <div>
                 <h4 className="mb-3 text-sm font-bold text-gray-500 uppercase">
                   Nội dung ứng tuyển
@@ -245,8 +247,8 @@ export default function ApplicationDetailModal({
                               </span>
                             </div>
                           )}
-                          
-                          <button
+
+                          {/* <button
                             onClick={() => handleOpenFile(media)}
                             className="absolute inset-0 flex items-center justify-center transition-opacity bg-black/50 opacity-0 group-hover:opacity-100"
                           >
@@ -255,7 +257,12 @@ export default function ApplicationDetailModal({
                                 ? "Xem ảnh"
                                 : "Tải tài liệu"}
                             </span>
-                          </button>
+                          </button> */}
+                          <Link
+                            className="absolute inset-0 flex items-center justify-center transition-opacity bg-black/50 opacity-0 group-hover:opacity-100"
+                            href={`${URL_MEDIA}${media.storage_key}`}
+                            target="_blank"
+                          ></Link>
                         </div>
                       );
                     })}
