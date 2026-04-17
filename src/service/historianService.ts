@@ -10,3 +10,8 @@ export const apiGetUserApplications = async (payload :any) => {
   const response = await api.get(API.Historian.APPLICATION, { params: payload });
   return response?.data;
 };
+
+export const apiDeleteHistorianCV = async (id: number | string) => {
+  const response = await api.delete(API.Historian.DELETE_CV(id));
+  return response?.data;
+};
