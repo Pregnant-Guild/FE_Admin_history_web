@@ -51,15 +51,29 @@ export default function ApplicationTable({
       <div className="flex flex-col ml-2 opacity-50 cursor-pointer hover:opacity-100">
         <svg
           className={`w-3 h-3 ${isActive && sortOrder === "asc" ? "text-blue-700 opacity-100" : "text-gray-400"}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={3}
+            d="M5 15l7-7 7 7"
+          />
         </svg>
         <svg
           className={`w-3 h-3 -mt-1 ${isActive && sortOrder === "desc" ? "text-blue-700 opacity-100" : "text-gray-400"}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={3}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </div>
     );
@@ -70,28 +84,46 @@ export default function ApplicationTable({
     switch (s) {
       case "1":
       case "PENDING":
-        return <Badge size="sm" variant="light" color="warning">Đang chờ</Badge>;
+        return (
+          <Badge size="sm" variant="light" color="warning">
+            Đang chờ
+          </Badge>
+        );
       case "2":
       case "APPROVED":
-        return <Badge size="sm" variant="light" color="success">Đã duyệt</Badge>;
+        return (
+          <Badge size="sm" variant="light" color="success">
+            Đã duyệt
+          </Badge>
+        );
       case "3":
       case "REJECTED":
-        return <Badge size="sm" variant="light" color="error">Từ chối</Badge>;
+        return (
+          <Badge size="sm" variant="light" color="error">
+            Từ chối
+          </Badge>
+        );
       default:
-        return <Badge size="sm" variant="light" color="light">{status || "N/A"}</Badge>;
+        return (
+          <Badge size="sm" variant="light" color="light">
+            {status || "N/A"}
+          </Badge>
+        );
     }
   };
 
-  const renderVerifyTypes = (verifyType: string | string[] | number | number[]) => {
+  const renderVerifyTypes = (
+    verifyType: string | string[] | number | number[],
+  ) => {
     const typeMap: Record<string, string> = {
       "1": "Thẻ nhận dạng nhà nghiên cứu",
-      "ID_CARD": "Thẻ nhận dạng nhà nghiên cứu",
+      ID_CARD: "Thẻ nhận dạng nhà nghiên cứu",
       "2": "Bằng cấp",
-      "EDUCATION": "Bằng cấp",
+      EDUCATION: "Bằng cấp",
       "3": "Chuyên gia",
-      "EXPERT": "Chuyên gia",
+      EXPERT: "Chuyên gia",
       "4": "Khác",
-      "OTHER": "Khác",
+      OTHER: "Khác",
     };
 
     const typesArray = Array.isArray(verifyType) ? verifyType : [verifyType];
@@ -121,37 +153,73 @@ export default function ApplicationTable({
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
                   Người gửi (ID)
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[220px]">
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[220px]"
+                >
                   Loại xác minh
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
                   Đính kèm
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  <div className="flex items-center cursor-pointer select-none" onClick={() => onSort("status")}>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
+                  <div
+                    className="flex items-center cursor-pointer select-none"
+                    onClick={() => onSort("status")}
+                  >
                     Trạng thái <SortIcon column="status" />
                   </div>
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  <div className="flex items-center cursor-pointer select-none" onClick={() => onSort("created_at")}>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
+                  <div
+                    className="flex items-center cursor-pointer select-none"
+                    onClick={() => onSort("created_at")}
+                  >
                     Ngày nộp <SortIcon column="created_at" />
                   </div>
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  <div className="flex items-center cursor-pointer select-none" onClick={() => onSort("reviewed_at")}>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
+                  <div
+                    className="flex items-center cursor-pointer select-none"
+                    onClick={() => onSort("reviewed_at")}
+                  >
                     Cập nhật <SortIcon column="reviewed_at" />
                   </div>
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
                   Cập nhật bởi
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 max-w-[200px]">
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 max-w-[200px]"
+                >
                   Ghi chú
                 </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-center text-gray-500 text-theme-xs dark:text-gray-400">
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-center text-gray-500 text-theme-xs dark:text-gray-400"
+                >
                   Thao tác
                 </TableCell>
               </TableRow>
@@ -160,17 +228,22 @@ export default function ApplicationTable({
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {data.length > 0 ? (
                 data.map((app) => (
-                  <TableRow key={app.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
+                  <TableRow
+                    key={app.id}
+                    className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors"
+                  >
                     <TableCell className="px-5 py-4 text-start font-mono text-theme-xs">
-                      {app.user_id.slice(0, 8)}...
+                      {app.user.display_name}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       {renderVerifyTypes(app.verify_type)}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-center text-theme-sm">
-                      <span className="font-bold text-gray-800 dark:text-white mr-1">{app.media?.length || 0}</span>
+                      <span className="font-bold text-gray-800 dark:text-white mr-1">
+                        {app.media?.length || 0}
+                      </span>
                     </TableCell>
-                    <TableCell className="px-5 py-4 text-start">
+                    <TableCell className="px-5 py-4 text-center ">
                       {getStatusBadge(app.status)}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
@@ -180,10 +253,17 @@ export default function ApplicationTable({
                       {formatDate(app.reviewed_at)}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
-                      {app.reviewed_by || "-"}
+                      {app.reviewer?.display_name || "-"}
                     </TableCell>
-                    <TableCell className="px-5 py-4 text-start text-theme-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
-                      {app.review_note || "-"}
+                    <TableCell className="group relative px-5 pb-4 text-start text-theme-xs text-gray-500 dark:text-gray-400 max-w-50">
+                      <div className="truncate">{app.review_note || "-"}</div>
+
+                      {app.review_note && (
+                        <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1 w-max max-w-75 p-2 backdrop-blur-sm  text-black text-xs rounded-lg shadow-xl wrap-break-words whitespace-normal">
+                          {app.review_note}
+                          {/* <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-600"></div> */}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-center">
                       <button
@@ -197,7 +277,10 @@ export default function ApplicationTable({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="px-5 py-20 text-center text-gray-500 italic">
+                  <TableCell
+                    colSpan={9}
+                    className="px-5 py-20 text-center text-gray-500 italic"
+                  >
                     Không tìm thấy dữ liệu hồ sơ
                   </TableCell>
                 </TableRow>

@@ -9,19 +9,32 @@ export interface MediaDto {
 
 export interface ApplicationDto {
   id: string;
-  user_id: string;
-  verify_type: string | number ; 
+  user_id?: string;
+  verify_type: string | number;
   content: string;
   is_deleted: boolean;
-  status: string | number; 
+  status: string | number;
   reviewed_by: string;
   review_note: string;
   reviewed_at: string | null;
   created_at: string;
   updated_at?: string;
   media: any[];
+  user: {
+    display_name?: string;
+    avatar_url?: string;
+    full_name?: string;
+    id?: string;
+    email?: string;
+  };
+  reviewer?: {
+    display_name?: string;
+    avatar_url?: string;
+    full_name?: string;
+    id?: string;
+    email?: string;
+  };
 }
-
 
 export interface GetApplicationsParams {
   page?: number;

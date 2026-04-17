@@ -18,7 +18,6 @@ import { LIMIT_ITEM_TABLE } from "../../../../../../constant";
 
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
-// Hàm helper format ngày giờ giống với Historian
 const formatDateTimeToISO = (
   dateStr: string,
   timeStr: string,
@@ -42,7 +41,6 @@ export default function UserTable() {
   const [authProvider, setAuthProvider] = useState<string>("");
   const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
 
-  // --- THÊM STATE CHO NGÀY GIỜ ---
   const [fromDate, setFromDate] = useState<string>("");
   const [fromTime, setFromTime] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
@@ -53,7 +51,6 @@ export default function UserTable() {
   const [roleUser, setRoleUser] = useState<fullDataUser | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
 
-  // Cập nhật params để chứa thêm ngày giờ
   const [debouncedParams, setDebouncedParams] = useState({
     search: "",
     limit: 5,
@@ -69,7 +66,6 @@ export default function UserTable() {
   const [sortBy, setSortBy] = useState<SortColumn | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // Hàm Reset bộ lọc
   const handleReset = () => {
     setSearchTerm("");
     setAuthProvider("");
@@ -136,7 +132,6 @@ export default function UserTable() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      // Dùng any để tránh lỗi TS nếu interface getUserDto chưa update
       const payload: any = {
         page: page,
         limit: debouncedParams.limit,
@@ -190,6 +185,8 @@ export default function UserTable() {
   };
 
   const pagination = tableData?.pagination;
+  
+  console.log(pagination);
 
   const handleOpenDetail = (user: fullDataUser) => {
     setSelectedUser(user);
