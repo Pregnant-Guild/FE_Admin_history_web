@@ -255,13 +255,13 @@ export default function ApplicationTable({
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
                       {app.reviewer?.display_name || "-"}
                     </TableCell>
-                    <TableCell className="group relative px-5 pb-4 text-start text-theme-xs text-gray-500 dark:text-gray-400 max-w-50">
+                    <TableCell className="group relative px-5 pb-4 text-start text-theme-xs text-gray-500 dark:text-gray-400 max-w-50 min-w-50">
                       <div className="truncate">{app.review_note || "-"}</div>
 
                       {app.review_note && (
-                        <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1 w-max max-w-75 p-2 backdrop-blur-sm  text-black text-xs rounded-lg shadow-xl wrap-break-words whitespace-normal">
+                        <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 w-max max-w-75 p-2 backdrop-blur-xs text-black text-xs rounded-lg shadow-xl wrap-break-words whitespace-normal">
                           {app.review_note}
-                          {/* <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-600"></div> */}
+                          <div className="absolute top-full left-1/2  border-6 border-transparent border-t-white"></div>
                         </div>
                       )}
                     </TableCell>

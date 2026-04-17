@@ -1,18 +1,20 @@
 "use client";
 
 import AccountDetails from "@/components/user-profile/AccountDetails";
+import ApplicationList from "@/components/user-profile/ApplicationList";
 import MediaCard from "@/components/user-profile/Media";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
 import { MediaDto } from "@/interface/media";
 import { UserMetaCardProps } from "@/interface/user";
 import { apiGetCurrentUser } from "@/service/auth";
-import { apiGetCurrentUserMedia } from "@/service/userService";
+import { apiGetCurrentUserApplications, apiGetCurrentUserMedia } from "@/service/userService";
 import { useEffect, useState } from "react";
 
 export default function Profile() {
   const [user, setUser] = useState<UserMetaCardProps | null>(null);
   const [mediaData, setMediaData] = useState<MediaDto | null>(null);
+  const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,6 +22,12 @@ export default function Profile() {
       try {
         const userData = await apiGetCurrentUser();
         const mediaResponse = await apiGetCurrentUserMedia();
+        const userApplications = await apiGetCurrentUserApplications();
+        // console.log("User Applications:", userApplications);
+
+        if (userApplications?.data) {
+          setApplications(userApplications.data);
+        }
 
         setMediaData(mediaResponse);
         setUser(userData);
@@ -42,6 +50,7 @@ export default function Profile() {
           <UserMetaCard data={user ?? {}} />
           <UserInfoCard data={{ ...user, openEdit: true }} />
           {(mediaData?.data?.length ?? 0) > 0 && <MediaCard data={mediaData ?? {}} />}
+          <ApplicationList applications={applications} />
           <AccountDetails data={user ?? {}} />
         </div>
       </div>
