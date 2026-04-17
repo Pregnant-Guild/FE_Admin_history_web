@@ -1,7 +1,6 @@
 import { UserData } from '@/interface/user';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-// Hàm helper để đọc dữ liệu an toàn từ storage
 const getStoredApplication = () => {
     if (typeof window !== "undefined") {
         const saved = sessionStorage.getItem('selected_application');
@@ -19,7 +18,7 @@ interface UserState {
 const initialState: UserState = {
     data: null,
     isAuthenticated: false,
-    selectedApplication: getStoredApplication(), // Khởi tạo từ storage
+    selectedApplication: getStoredApplication(),
 };
 
 const userSlice = createSlice({
@@ -32,7 +31,6 @@ const userSlice = createSlice({
         },
         setSelectedApplication: (state, action: PayloadAction<any>) => {
             state.selectedApplication = action.payload;
-            // Lưu vào sessionStorage để khi reload trang không bị mất
             if (typeof window !== "undefined") {
                 sessionStorage.setItem('selected_application', JSON.stringify(action.payload));
             }

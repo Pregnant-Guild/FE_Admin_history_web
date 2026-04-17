@@ -58,14 +58,14 @@ export const uploadFileToS3 = async (
       "Content-Type": file.type,
     },
   });
-  console.log("Response from S3 upload:", res);
+  // console.log("Response from S3 upload:", res);
 };
 
 export const confirmUpload = async (token_id: string) => {
   const res = await api.post("/media/presigned/complete", {
     token_id,
   });
-  console.log("Response from confirm upload:", res);
+  // console.log("Response from confirm upload:", res);
   return res.data;
 };
 
@@ -80,12 +80,12 @@ export const uploadMedia = async (file: File) => {
       },
     },
   );
-  console.log("Presigned URL:", presigned);
+  // console.log("Presigned URL:", presigned);
 
   await uploadFileToS3(file, presigned);
 
   const media = await confirmUpload(presigned.token_id);
-  console.log("Media sau khi upload:", media);
+  // console.log("Media sau khi upload:", media);
   return media;
 };
 
@@ -100,7 +100,7 @@ export const getPresignedUrl = async (file: File) => {
       },
     },
   );
-  console.log("Presigned URL:", presigned);
+  // console.log("Presigned URL:", presigned);
   return presigned;
 };
 

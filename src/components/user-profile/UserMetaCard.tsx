@@ -37,7 +37,7 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
       setIsUploading(true);
       const uploadedMedia = await uploadMedia(file);
       
-      console.log("Upload thành công:", uploadedMedia);
+      // console.log("Upload thành công:", uploadedMedia);
 
      
       if (uploadedMedia?.url) {
