@@ -12,8 +12,12 @@ export const apiGetCurrentUserApplications = async () => {
   return response?.data;
 };
 
-export const apiUpdateUser = async (id: number | string, payload: Profile) => {
+export const apiUpdateUser = async (id:string, payload: Profile) => {
   const response = await api.put(API.User.Update(id), payload);
   return response?.data;
 };
 
+export const apiUpdateUserCurrent = async (payload: Profile) => {
+  const response = await api.put(API.User.CURRENT, payload);
+  return response?.data;
+};

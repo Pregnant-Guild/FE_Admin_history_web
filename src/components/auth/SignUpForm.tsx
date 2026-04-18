@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { API, HOME_URL } from "../../../api";
+import Swal from "sweetalert2";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -102,7 +103,7 @@ export default function SignUpForm() {
       };
 
       const signupRes = await apiSignUp(signupPayload);
-      alert("Đăng ký thành công! Đang chuyển hướng...");
+      Swal.fire("Đăng ký thành công! Đang chuyển hướng về trang đăng nhập!");
 
       window.location.href = "/signin";
     } catch (error) {

@@ -58,6 +58,57 @@ export default function ApplicationSquareCardList({
     dispatch(setSelectedApplication(app));
     router.push(`/profile/applications`);
   };
+  // Tạo object mapping để render icon dựa trên status
+  const StatusIcons: Record<string, React.ReactNode> = {
+    APPROVED: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+        />
+      </svg>
+    ),
+    PENDING: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-6 animate-pulse p-1 "
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"
+        />
+      </svg>
+    ),
+    REJECTED: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+        />
+      </svg>
+    ),
+  };
 
   return (
     <div className="p-5 border rounded-xl dark:border-zinc-800 lg:p-6 bg-white dark:bg-zinc-950">
@@ -68,8 +119,6 @@ export default function ApplicationSquareCardList({
       <div className="flex flex-wrap gap-4">
         {applications?.map((app) => {
           const mediaState = processMedia(app.media);
-
-          // --- LOGIC STATUS NẰM TRONG VÒNG LẶP ---
           const config = statusConfig[app.status] || statusConfig.PENDING;
 
           return (
@@ -78,7 +127,7 @@ export default function ApplicationSquareCardList({
               onClick={() => handleViewDetail(app)}
               className="group relative h-60 aspect-square border dark:border-zinc-800 rounded-xl cursor-pointer overflow-hidden transition-all duration-300 hover:ring-2 hover:ring-blue-500/50"
             >
-              {/* BACKGROUND */}
+              {/* Media Layer */}
               <div className="absolute inset-0 z-0">
                 {mediaState.type === "image" ? (
                   <img
@@ -106,32 +155,28 @@ export default function ApplicationSquareCardList({
                 )}
               </div>
 
-              {/* OVERLAY */}
+              {/* Overlay Gradient */}
               <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/20 to-transparent transition-opacity group-hover:opacity-90" />
 
-              {/* TOP INFO: STATUS & FILE COUNT */}
-              <div className="absolute top-2 left-2 right-2 z-20 flex justify-between items-start">
-                <div
-                  className={`flex items-center p-1 rounded-full border ${config.container}`}
-                >
-                  <span
-                    className={`w-2 h-2 rounded-full ${config.dot} ${
-                      app.status === "PENDING" ? "animate-pulse" : ""
-                    }`}
-                  />
-                  {/* <span className="text-[9px] font-bold uppercase tracking-wider">
-                    {app.status}
-                  </span> */}
-                </div>
-
-                {app.media?.length > 0 && (
+              {/* TOP INFO: FILE COUNT & STATUS ICON */}
+              <div className="absolute top-2 left-2 right-2 z-20 flex justify-between items-center">
+                {app.media?.length > 0 ? (
                   <span className="text-[9px] font-bold text-white/60 bg-black/40 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
                     {app.media.length} FILE
                   </span>
+                ) : (
+                  <div />
                 )}
+
+                {/* Status Icon Wrapper */}
+                <div
+                  className={`${config.container} rounded-full`}
+                >
+                  {StatusIcons[app.status] || StatusIcons.PENDING}
+                </div>
               </div>
 
-              {/* BOTTOM INFO */}
+              {/* Bottom Content */}
               <div className="absolute bottom-2 left-2 right-2 z-20 text-white">
                 <div className="mb-1">
                   <p className="text-[10px] font-bold uppercase opacity-80 truncate">

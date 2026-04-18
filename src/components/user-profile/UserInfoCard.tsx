@@ -7,7 +7,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { Profile, UserMetaCardProps } from "@/interface/user";
-import { apiUpdateUser } from "@/service/userService";
+import { apiUpdateUser, apiUpdateUserCurrent } from "@/service/userService";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -51,7 +51,7 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
     if (!userId) return;
 
     try {
-      const response = await apiUpdateUser(userId, formData);
+      const response = await apiUpdateUserCurrent(formData);
 
       if (response && response.status === false) {
         toast.error(response.message || "Cập nhật thất bại.");
@@ -90,14 +90,6 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
           </h4>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-            {/* <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Avatar
-              </p>
-               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {data.data?.profile?.avatar_url || "avatar_url"}
-              </p>
-            </div> */}
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Full Name

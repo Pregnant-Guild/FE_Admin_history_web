@@ -38,7 +38,6 @@ export const apiUpdateApplicationStatus = async (id: string, payload: any) => {
 };
 
 export const apiGetUserById = async (userId: string) => {
-  // Thay đổi URL sao cho khớp với route Backend của bạn
   const response = await api.get(API.Admin.GET_USER_BY_ID(userId)); 
   return response?.data;
 };

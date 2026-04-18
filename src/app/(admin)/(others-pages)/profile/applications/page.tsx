@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiDeleteHistorianCV } from "@/service/historianService";
 import Swal from "sweetalert2";
-
-// Import statusConfig để đồng bộ logic
 import { statusConfig } from "@/service/handler";
 
 import Lightbox from "yet-another-react-lightbox";
@@ -17,6 +15,7 @@ import Captions from "yet-another-react-lightbox/plugins/captions";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 import { URL_MEDIA } from "../../../../../../api";
+import Image from "next/image";
 
 export default function ApplicationDetailPage() {
   const application = useSelector(
@@ -24,6 +23,9 @@ export default function ApplicationDetailPage() {
   );
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [errMessage, setErrMessage] = useState<string>(
+    "Không thể xóa đơn đăng ký này.",
+  );
   const [index, setIndex] = useState(-1);
 
   if (!application) {
@@ -82,6 +84,8 @@ export default function ApplicationDetailPage() {
       try {
         setIsDeleting(true);
         await apiDeleteHistorianCV(application.id);
+
+        // Thành công (200 OK)
         await Swal.fire({
           title: "Đã xóa!",
           icon: "success",
@@ -91,15 +95,31 @@ export default function ApplicationDetailPage() {
           color: isDarkMode ? "#fff" : "#000",
         });
         router.push("/profile");
-      } catch (error) {
-        Swal.fire({ title: "Lỗi!", icon: "error" });
+      } catch (error: any) {
+        setErrMessage(
+          error.response?.data?.message || "Có lỗi xảy ra khi xóa!",
+        );
+        if (
+          error.response?.data?.message ===
+          "You don't have permission to access this resource."
+        ) {
+          setErrMessage("Bạn không có quyền xóa đơn đăng ký này.");
+        }
+
+        Swal.fire({
+          title: "Lỗi!",
+          text: errMessage,
+          icon: "error",
+          background: isDarkMode ? "#18181b" : "#fff",
+          color: isDarkMode ? "#fff" : "#000",
+        });
       } finally {
         setIsDeleting(false);
       }
     }
   };
 
-  console.log("Application Detail:", application); // Debug log để kiểm tra dữ liệu ứng dụng
+  // console.log("Application Detail:", application);
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border dark:border-zinc-800">
@@ -179,19 +199,70 @@ export default function ApplicationDetailPage() {
           </section>
         )}
 
-        {application.status !== "APPROVED" && (
-          <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
-            <div className="flex justify-end w-full">
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="group flex items-center gap-2 px-8 py-3 bg-red-100 hover:bg-red-500 text-red-600 hover:text-white dark:bg-red-950/20 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white text-sm font-black rounded-xl transition-all duration-300 disabled:opacity-50"
-              >
-                {isDeleting ? "ĐANG XỬ LÝ..." : "XÓA"}
-              </button>
+        {application.status !== "APPROVED" &&
+          application.status !== "REJECTED" && (
+            <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="flex justify-end w-full">
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="group flex items-center gap-2 px-8 py-3 bg-red-100 hover:bg-red-500 text-red-600 hover:text-white dark:bg-red-950/20 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white text-sm font-black rounded-xl transition-all duration-300 disabled:opacity-50"
+                >
+                  {isDeleting ? "ĐANG XỬ LÝ..." : "XÓA"}
+                </button>
+              </div>
             </div>
+          )}
+
+       {application?.reviewer && (
+  <section className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
+    <label className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 block">
+      Phản hồi từ người kiểm duyệt
+    </label>
+
+    <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex items-center gap-3">
+          {application?.reviewer?.avatar_url ? (
+            <Image
+              src={application.reviewer.avatar_url}
+              alt={application.reviewer.display_name || "Avatar"}
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 font-medium text-sm">
+              {application?.reviewer?.display_name?.charAt(0) || "R"}
+            </div>
+          )}
+          
+          <div>
+            <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              {application?.reviewer?.display_name}
+            </h4>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              {application?.reviewer?.email}
+            </p>
           </div>
-        )}
+        </div>
+        <span className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
+          {application?.reviewed_at}
+        </span>
+      </div>
+
+      <div className="relative ml-4 pl-4 border-l border-zinc-300 dark:border-zinc-700">
+        <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+          {application?.review_note ? (
+            <p>{application.review_note}</p>
+          ) : (
+            <p className="italic text-zinc-500">Không có ghi chú bổ sung.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
       </div>
 
       <Lightbox

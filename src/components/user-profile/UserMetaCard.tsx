@@ -4,10 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { UserMetaCardProps } from "@/interface/user";
 import { uploadMedia } from "@/service/mediaService";
+import { toast } from "sonner";
+import { apiUpdateUser, apiUpdateUserCurrent } from "@/service/userService";
+import { URL_MEDIA } from "../../../api";
 
 export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
-  const currentAvatar = data.data?.profile?.avatar_url || "/images/no-images.jpg";
-
+  const currentAvatar =
+    data.data?.profile?.avatar_url || "/images/no-images.jpg";
   const [previewImage, setPreviewImage] = useState(currentAvatar);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,26 +27,40 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
     }
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-   
     const objectUrl = URL.createObjectURL(file);
-    const backupImage = previewImage; 
+    const backupImage = previewImage;
     setPreviewImage(objectUrl);
 
     try {
       setIsUploading(true);
       const uploadedMedia = await uploadMedia(file);
-      
+
       // console.log("Upload thành công:", uploadedMedia);
 
-     
-      if (uploadedMedia?.url) {
-        setPreviewImage(uploadedMedia.url);
+      if (uploadedMedia?.storage_key) {
+        const url = URL_MEDIA + uploadedMedia.storage_key;
+        setPreviewImage(url);
+        if (data.data) {
+          try {
+            await apiUpdateUserCurrent({ avatar_url: url });
+            toast.success("Cập nhật avatar thành công!");
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } catch (error) {
+            console.error("Lỗi khi cập nhật avatar:", error);
+            toast.warning(
+              "Ảnh đã được tải lên nhưng không thể cập nhật hồ sơ. Vui lòng thử lại!",
+            );
+          }
+        }
       }
-
     } catch (error) {
       console.error("Lỗi khi upload avatar:", error);
       setPreviewImage(backupImage);
@@ -55,7 +72,6 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
       }
     }
   };
-
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
@@ -72,17 +88,47 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
               className="object-cover w-full h-full"
               priority
             />
-            
+
             <div className="absolute inset-0 flex items-center justify-center transition-opacity bg-black/50 opacity-0 group-hover:opacity-100">
               {isUploading ? (
-                <svg className="w-6 h-6 text-white animate-spin" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="w-6 h-6 text-white animate-spin"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
               ) : (
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
               )}
             </div>
@@ -102,7 +148,8 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
             </h4>
             <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
               <p className="text-sm text-blue-500 dark:text-gray-400">
-                {data.data?.roles?.map((role) => role.name).join(", ") || "No roles available"}
+                {data.data?.roles?.map((role) => role.name).join(", ") ||
+                  "No roles available"}
               </p>
               {data.data?.profile?.bio && (
                 <>

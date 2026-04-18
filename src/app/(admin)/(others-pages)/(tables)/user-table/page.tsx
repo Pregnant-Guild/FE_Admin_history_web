@@ -186,7 +186,7 @@ export default function UserTable() {
 
   const pagination = tableData?.pagination;
   
-  console.log(pagination);
+  // console.log(pagination);
 
   const handleOpenDetail = (user: fullDataUser) => {
     setSelectedUser(user);

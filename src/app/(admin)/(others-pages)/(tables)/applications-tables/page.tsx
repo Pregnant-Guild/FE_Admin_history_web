@@ -186,7 +186,8 @@ export default function HistorianApplicationPage() {
   };
 
   const pagination = tableData?.pagination;
-  
+
+  console.log(tableData)
   // console.log("Pagination info:", pagination);
   return (
     <div>

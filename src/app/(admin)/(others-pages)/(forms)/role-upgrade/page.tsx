@@ -7,7 +7,7 @@ import {
   getPresignedUrl,
   uploadFileToS3,
 } from "@/service/mediaService";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
@@ -37,6 +37,37 @@ export default function RoleUpgrade() {
   const [lightboxIndex, setLightboxIndex] = useState(-1);
   const [isPreparingFiles, setIsPreparingFiles] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const handleIframeLoad = () => {
+    const iframe = iframeRef.current;
+    // Đảm bảo iframe và nội dung bên trong đã sẵn sàng và cùng nguồn gốc (same-origin)
+    if (!iframe || !iframe.contentDocument) return;
+
+    const updateHeight = () => {
+      if (iframe.contentDocument) {
+        // Mẹo: Reset height về 'auto' trước để lấy được chiều cao thực tế
+        // (đặc biệt khi người dùng xóa bớt nội dung làm chiều cao ngắn lại)
+        iframe.style.height = "auto";
+        const scrollHeight =
+          iframe.contentDocument.documentElement.scrollHeight;
+        iframe.style.height = `${scrollHeight}px`;
+      }
+    };
+
+    // 1. Cập nhật chiều cao ngay khi iframe load xong HTML
+    updateHeight();
+
+    // 2. Dùng ResizeObserver để theo dõi những thay đổi sau khi load
+    // (VD: ảnh bên trong tải xong làm nội dung dài ra)
+    const resizeObserver = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    if (iframe.contentDocument.body) {
+      resizeObserver.observe(iframe.contentDocument.body);
+    }
+  };
 
   const cleanHTMLContent = (rawHtml: string) => {
     if (!rawHtml) return "";
@@ -198,13 +229,34 @@ export default function RoleUpgrade() {
           ) : (
             <div className="bg-white border border-zinc-200 rounded-xl shadow-inner overflow-hidden min-h-[400px]">
               {content ? (
-                <div className="preview-wrapper bg-white text-black">
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: cleanHTMLContent(content),
-                    }}
-                  />
-                </div>
+                <iframe
+                  ref={iframeRef}
+                  onLoad={handleIframeLoad}
+                  srcDoc={`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <meta charset="utf-8">
+                          <style>
+                            body { 
+                              font-family: system-ui, sans-serif; 
+                              padding: 20px; 
+                              margin: 0; 
+                              color: black;
+                              overflow-y: hidden;
+                            }
+                            img { max-width: 100%; height: auto; display: block; margin-top: 10px; }
+                          </style>
+                        </head>
+                        <body>
+                          ${cleanHTMLContent(content)}
+                        </body>
+                      </html>
+                    `}
+                  title="Preview"
+                  className="w-full border-none flex-1 transition-all duration-300"
+                  sandbox="allow-same-origin"
+                />
               ) : (
                 <div className="flex flex-col items-center justify-center h-[400px] text-zinc-400 italic bg-gray-50 dark:bg-gray-900">
                   <p>Chưa có nội dung để xem trước</p>

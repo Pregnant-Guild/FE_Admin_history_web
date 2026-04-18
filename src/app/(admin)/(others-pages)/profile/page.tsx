@@ -23,7 +23,8 @@ export default function Profile() {
         const userData = await apiGetCurrentUser();
         const mediaResponse = await apiGetCurrentUserMedia();
         const userApplications = await apiGetCurrentUserApplications();
-        // console.log("User Applications:", userApplications);
+        
+        console.log(userData);
 
         if (userApplications?.data) {
           setApplications(userApplications.data);
