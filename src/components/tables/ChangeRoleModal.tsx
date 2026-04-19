@@ -134,7 +134,7 @@ export default function ChangeRoleModal({ isOpen, onClose, user, onSuccess }: Ch
                       </span>
                       {isDefault && (
                         <span className="text-[10px] text-gray-400 italic">
-                          Mặc định không thể xóa
+                          
                         </span>
                       )}
                     </div>
