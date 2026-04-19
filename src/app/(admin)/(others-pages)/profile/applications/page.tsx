@@ -118,6 +118,17 @@ export default function ApplicationDetailPage() {
       }
     }
   };
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   // console.log("Application Detail:", application);
 
@@ -247,7 +258,7 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
         <span className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
-          {application?.reviewed_at}
+          {formatDate(application?.reviewed_at)}
         </span>
       </div>
 
