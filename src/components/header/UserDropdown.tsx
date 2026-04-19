@@ -4,14 +4,11 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { fullDataUser } from "@/interface/admin";
 import { UserMetaCardProps } from "@/interface/user";
 import { apiGetCurrentUser, apiLogout } from "@/service/auth";
-import { useRouter } from "next/navigation";
+import { removeUserFromCookie } from "@/lib/cookieStorage";
 
 export default function UserDropdown() {
-  const router = useRouter();
-
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<UserMetaCardProps | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,6 +44,9 @@ export default function UserDropdown() {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
+      // Xóa user data từ cookies
+      removeUserFromCookie();
+
       localStorage.clear();
       sessionStorage.clear();
 

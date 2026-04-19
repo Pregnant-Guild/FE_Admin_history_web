@@ -12,6 +12,7 @@ import { API, HOME_URL } from "../../../api";
 import { setUserData } from "@/store/features/userSlice";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
+import { saveUserToCookie } from "@/lib/cookieStorage";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -73,7 +74,9 @@ export default function SignInForm() {
         
         // console.log("Current User Data:", data);
         if (data?.data) {
+          // Lưu user data vào Redux và cookies
           dispatch(setUserData(data.data));
+          saveUserToCookie(data.data);
           router.push("/");
         }
       } else {

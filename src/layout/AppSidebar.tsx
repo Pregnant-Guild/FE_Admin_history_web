@@ -18,6 +18,8 @@ import {
   UserCircleIcon,
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
+import { useAuth } from "@/hooks/useAuth";
+import { canAccessRoute, PUBLIC_ROUTES } from "@/config/routes.config";
 
 type NavItem = {
   name: string;
@@ -101,6 +103,39 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { userRoles } = useAuth();
+
+  const hasAccess = (path?: string) => {
+    if (!path) return true;
+    if (!userRoles || userRoles.length === 0) {
+      return PUBLIC_ROUTES.includes(path) || ["/", "/profile", "/calendar"].includes(path);
+    }
+    return canAccessRoute(userRoles, path);
+  };
+
+  const buildNavItems = (items: NavItem[]) =>
+    items
+      .map((nav) => {
+        if (nav.path && !hasAccess(nav.path)) {
+          return null;
+        }
+
+        if (nav.subItems) {
+          const filteredItems = nav.subItems.filter((subItem) =>
+            hasAccess(subItem.path),
+          );
+          if (filteredItems.length === 0) {
+            return null;
+          }
+          return { ...nav, subItems: filteredItems };
+        }
+
+        return nav;
+      })
+      .filter((item): item is NavItem => item !== null);
+
+  const filteredMainNavItems = buildNavItems(navItems);
+  const filteredOthersNavItems = buildNavItems(othersItems);
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -357,7 +392,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(filteredMainNavItems, "main")}
             </div>
 
             <div className="">
@@ -374,7 +409,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(othersItems, "others")}
+              {renderMenuItems(filteredOthersNavItems, "others")}
             </div>
           </div>
         </nav>
