@@ -38,18 +38,6 @@ export default function ApplicationDetailPage() {
 
   const config = statusConfig[application.status] || statusConfig.PENDING;
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const isImageFile = (file: any) => {
     const isImageMime = file.mime_type?.startsWith("image/");
     const isImageExt = /\.(jpg|jpeg|png|webp|gif)$/i.test(file.storage_key);
@@ -226,57 +214,55 @@ export default function ApplicationDetailPage() {
             </div>
           )}
 
-        {application?.reviewer && (
-          <section className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
-            <label className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 block">
-              Phản hồi từ người kiểm duyệt
-            </label>
+       {application?.reviewer && (
+  <section className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
+    <label className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 block">
+      Phản hồi từ người kiểm duyệt
+    </label>
 
-            <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
-              <div className="flex items-start justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  {application?.reviewer?.avatar_url ? (
-                    <Image
-                      src={application.reviewer.avatar_url}
-                      alt={application.reviewer.display_name || "Avatar"}
-                      width={36}
-                      height={36}
-                      className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 font-medium text-sm">
-                      {application?.reviewer?.display_name?.charAt(0) || "R"}
-                    </div>
-                  )}
-
-                  <div>
-                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      {application?.reviewer?.display_name}
-                    </h4>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                      {application?.reviewer?.email}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
-                  {formatDate(application?.reviewed_at)}
-                </span>
-              </div>
-
-              <div className="relative ml-4 pl-4 border-l border-zinc-300 dark:border-zinc-700">
-                <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                  {application?.review_note ? (
-                    <p>{application.review_note}</p>
-                  ) : (
-                    <p className="italic text-zinc-500">
-                      Không có ghi chú bổ sung.
-                    </p>
-                  )}
-                </div>
-              </div>
+    <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex items-center gap-3">
+          {application?.reviewer?.avatar_url ? (
+            <Image
+              src={application.reviewer.avatar_url}
+              alt={application.reviewer.display_name || "Avatar"}
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 font-medium text-sm">
+              {application?.reviewer?.display_name?.charAt(0) || "R"}
             </div>
-          </section>
-        )}
+          )}
+          
+          <div>
+            <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              {application?.reviewer?.display_name}
+            </h4>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              {application?.reviewer?.email}
+            </p>
+          </div>
+        </div>
+        <span className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
+          {application?.reviewed_at}
+        </span>
+      </div>
+
+      <div className="relative ml-4 pl-4 border-l border-zinc-300 dark:border-zinc-700">
+        <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+          {application?.review_note ? (
+            <p>{application.review_note}</p>
+          ) : (
+            <p className="italic text-zinc-500">Không có ghi chú bổ sung.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
       </div>
 
       <Lightbox

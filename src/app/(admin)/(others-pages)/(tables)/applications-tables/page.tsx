@@ -5,7 +5,6 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Pagination from "@/components/tables/Pagination";
 import Swal from "sweetalert2";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 import ApplicationTable, {
   AppSortColumn,
@@ -191,9 +190,8 @@ export default function HistorianApplicationPage() {
   console.log(tableData)
   // console.log("Pagination info:", pagination);
   return (
-    <ProtectedRoute requiredRoles={["ADMIN", "MOD", "HISTORIAN"]}>
-      <div>
-        <PageBreadcrumb pageTitle="Quản lý hồ sơ" />
+    <div>
+      <PageBreadcrumb pageTitle="Quản lý hồ sơ" />
 
       <div className="space-y-6">
         <ComponentCard
@@ -220,6 +218,7 @@ export default function HistorianApplicationPage() {
             </button>
           }
         >
+          {/* Cập nhật Grid để chứa đủ các ô filter */}
           <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <div>
               <label className="block mb-2 text-sm font-medium">Tìm kiếm</label>
@@ -355,6 +354,5 @@ export default function HistorianApplicationPage() {
         onRefresh={fetchApplications}
       />
     </div>
-    </ProtectedRoute>
   );
 }
