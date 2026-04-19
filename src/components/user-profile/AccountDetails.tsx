@@ -64,7 +64,7 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
           new_password: formValues.new_password,
         };
 
-        await apiChangePassword(userId, payload as any);
+        await apiChangePassword(payload as any);
         closeModal();
         toast.success("Cập nhật thành công!");
         router.refresh();

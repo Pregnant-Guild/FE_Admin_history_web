@@ -7,7 +7,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { Profile, UserMetaCardProps } from "@/interface/user";
-import { apiUpdateUser, apiUpdateUserCurrent } from "@/service/userService";
+import { apiUpdateUser } from "@/service/userService";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -51,7 +51,7 @@ export default function UserInfoCard({ data }: { data: UserMetaCardProps }) {
     if (!userId) return;
 
     try {
-      const response = await apiUpdateUserCurrent(formData);
+      const response = await apiUpdateUser(formData);
 
       if (response && response.status === false) {
         toast.error(response.message || "Cập nhật thất bại.");

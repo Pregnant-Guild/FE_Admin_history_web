@@ -5,8 +5,8 @@ export const API = {
   User : {
     CURRENT: `${API_URL_ROOT}/users/current`,
     MEDIA: `${API_URL_ROOT}/users/current/media`,
-    Update:  (Id: number | string) => `${API_URL_ROOT}/users/${Id}`,
-    CHANGE_PASSWORD: (Id: number | string) => `${API_URL_ROOT}/users/${Id}/password`,
+    Update: `${API_URL_ROOT}/users/current`,
+    CHANGE_PASSWORD: `${API_URL_ROOT}/users/current/password`,
     APPLICATION: `${API_URL_ROOT}/users/current/application`
   },
   Media:{
@@ -37,5 +37,6 @@ export const API = {
   Historian:{
     CREATE_CV: `${API_URL_ROOT}/historian/application`,
     APPLICATION: `${API_URL_ROOT}/historian/application`,
+    DELETE_CV: (Id: number | string) => `${API_URL_ROOT}/historian/application/${Id}`,
   }
 }

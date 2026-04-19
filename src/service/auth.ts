@@ -41,7 +41,7 @@ export const apiGetCurrentUser = async () => {
   return response?.data;
 };
 
-export const apiChangePassword = async (id:string,payload: any) => {
-  const response = await api.patch(API.User.CHANGE_PASSWORD(id), payload);
+export const apiChangePassword = async (payload: any) => {
+  const response = await api.patch(API.User.CHANGE_PASSWORD, payload);
   return response?.data;
 };

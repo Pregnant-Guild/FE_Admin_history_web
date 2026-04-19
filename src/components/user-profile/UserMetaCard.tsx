@@ -5,7 +5,7 @@ import Image from "next/image";
 import { UserMetaCardProps } from "@/interface/user";
 import { uploadMedia } from "@/service/mediaService";
 import { toast } from "sonner";
-import { apiUpdateUser, apiUpdateUserCurrent } from "@/service/userService";
+import { apiUpdateUser } from "@/service/userService";
 import { URL_MEDIA } from "../../../api";
 
 export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
@@ -48,7 +48,7 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
         setPreviewImage(url);
         if (data.data) {
           try {
-            await apiUpdateUserCurrent({ avatar_url: url });
+            await apiUpdateUser({ avatar_url: url });
             toast.success("Cập nhật avatar thành công!");
             setTimeout(() => {
               window.location.reload();
