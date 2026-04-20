@@ -9,14 +9,17 @@ import { MediaDto } from "@/interface/media";
 import { UserMetaCardProps } from "@/interface/user";
 import { apiGetCurrentUser } from "@/service/auth";
 import { apiGetCurrentUserApplications, apiGetCurrentUserMedia } from "@/service/userService";
+import { setUserData } from "@/store/features/userSlice";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function Profile() {
   const [user, setUser] = useState<UserMetaCardProps | null>(null);
   const [mediaData, setMediaData] = useState<MediaDto | null>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const dispatch = useDispatch();
+  
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -24,11 +27,12 @@ export default function Profile() {
         const mediaResponse = await apiGetCurrentUserMedia();
         const userApplications = await apiGetCurrentUserApplications();
         
-        console.log(userData);
+        console.log("user", userData);
 
         if (userApplications?.data) {
           setApplications(userApplications.data);
         }
+        dispatch(setUserData(userData.data));
 
         setMediaData(mediaResponse);
         setUser(userData);

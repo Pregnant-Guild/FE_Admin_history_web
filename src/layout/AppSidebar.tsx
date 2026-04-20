@@ -117,25 +117,21 @@ const AppSidebar: React.FC = () => {
   // Lấy data gốc từ Redux (không bị render lại vô cớ)
   const rolesData = useSelector((state: RootState) => state.user.data?.roles);
   
-  // Chỉ tạo mảng map mới khi rolesData thực sự thay đổi
   const userRoles = useMemo(() => {
     return rolesData?.map((r: any) => r.name) || [];
   }, [rolesData]);
 
-  // 2. Logic lọc Menu theo Role
   const filterMenuByRole = useCallback((items: NavItem[]) => {
     return items
       .map((item) => ({
         ...item,
         subItems: item.subItems?.filter((sub) => {
-          if (!sub.roles) return true; // Ai cũng xem được nếu không định nghĩa role
+          if (!sub.roles) return true;
           return sub.roles.some((role) => userRoles.includes(role));
         }),
       }))
       .filter((item) => {
-        // Ẩn mục cha nếu nó yêu cầu role mà user không có
         if (item.roles && !item.roles.some((role) => userRoles.includes(role))) return false;
-        // Ẩn mục cha nếu các mục con đã bị lọc sạch (đối với menu dạng dropdown)
         if (item.subItems && item.subItems.length === 0 && !item.path) return false;
         return true;
       });
@@ -144,7 +140,6 @@ const AppSidebar: React.FC = () => {
   const filteredNavItems = useMemo(() => filterMenuByRole(ALL_NAV_ITEMS), [filterMenuByRole]);
   const filteredOthersItems = useMemo(() => filterMenuByRole(OTHERS_ITEMS), [filterMenuByRole]);
 
-  // --- State quản lý đóng mở Submenu ---
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
