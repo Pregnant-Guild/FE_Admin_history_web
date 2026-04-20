@@ -1,5 +1,8 @@
 "use client";
+import { apiGetCurrentUser } from "@/service/auth";
+import { setUserData } from "@/store/features/userSlice";
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 
 type SidebarContextType = {
   isExpanded: boolean;
@@ -33,6 +36,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const handleResize = () => {
@@ -50,6 +54,18 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+    useEffect(() => {
+      const fetchUser = async () => {
+        try {
+          const userData = await apiGetCurrentUser();
+          dispatch(setUserData(userData.data));
+        } catch (err) {
+        console.error("Lỗi:", err);
+      }
+      };
+      fetchUser();
+    }, [])
 
   const toggleSidebar = () => {
     setIsExpanded((prev) => !prev);
