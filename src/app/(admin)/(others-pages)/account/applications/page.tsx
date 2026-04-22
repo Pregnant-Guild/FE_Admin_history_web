@@ -94,7 +94,7 @@ export default function ApplicationDetailPage() {
           background: isDarkMode ? "#18181b" : "#fff",
           color: isDarkMode ? "#fff" : "#000",
         });
-        router.push("/profile");
+        router.push("/account");
       } catch (error: any) {
         setErrMessage(
           error.response?.data?.message || "Có lỗi xảy ra khi xóa!",
