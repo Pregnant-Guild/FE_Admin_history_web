@@ -198,7 +198,7 @@ export default function RoleUpgrade() {
 
   return (
     <div className="max-w-4xl mx-auto pb-20">
-      <PageBreadcrumb pageTitle="Nâng cấp tài khoản Nhà sử học" />
+      <PageBreadcrumb pageTitle="Đăng ký trở thành Nhà sử học" />
 
       <div className="flex items-center justify-between bg-white dark:bg-gray-900 p-2 rounded-xl border border-gray-200 dark:border-gray-800 mb-6">
         <div className="flex gap-2">

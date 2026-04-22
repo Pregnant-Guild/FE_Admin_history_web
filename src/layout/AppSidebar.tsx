@@ -10,6 +10,7 @@ import {
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
+  FileIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
@@ -39,44 +40,51 @@ type NavItem = {
 const ALL_NAV_ITEMS: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    name: "Trang Chủ",
+    // subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    path: "/",
   },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Calendar",
+  //   path: "/calendar",
+  // },
   {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
+    icon: <FileIcon />,
+    name: "Thư Viện",
+    path: "/library",
   },
+  // {
+  //   name: "Forms",
+  //   icon: <ListIcon />,
+  //   subItems: [
+  //     // { name: "Form Elements", path: "/form-elements", pro: false },
+  //     { name: "Role Upgrade", path: "/role-upgrade", pro: false }
+  //   ],
+  // },
   {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
-  },
-  {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [
-      // { name: "Form Elements", path: "/form-elements", pro: false },
-      { name: "Role Upgrade", path: "/role-upgrade", pro: false }
-    ],
-  },
-  {
-    name: "Tables",
+    name: "Quản lý",
     icon: <TableIcon />,
     subItems: [
       // { name: "Basic Tables", path: "/basic-tables", pro: false },
-      { name: "User Tables", path: "/user-table", pro: false, roles: ["ADMIN", "MOD"] },
-      { name: "Applications Tables", path: "/applications-tables", pro: false, roles: ["ADMIN", "MOD"] },
+      { name: "Tài Khoản", path: "/user-information", pro: false, roles: ["ADMIN", "MOD"] },
+      { name: "Hồ Sơ Nhà Sử Học", path: "/applications", pro: false, roles: ["ADMIN", "MOD"] },
+      { name: "Tệp Đăng Tải", path: "/assets", pro: false, roles: ["ADMIN", "MOD"] },
     ],
   },
   {
-    name: "Pages",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
+    icon: <UserCircleIcon />,
+    name: "Tài Khoản",
+    path: "/account",
   },
+  // {
+  //   name: "Pages",
+  //   icon: <PageIcon />,
+  //   subItems: [
+  //     { name: "Blank Page", path: "/blank", pro: false },
+  //     { name: "404 Error", path: "/error-404", pro: false },
+  //   ],
+  // },
 ];
 
 const OTHERS_ITEMS: NavItem[] = [
@@ -198,7 +206,7 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${
+              className={`menu-item group uppercase ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active" : "menu-item-inactive"
               } cursor-pointer ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
@@ -278,12 +286,12 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(filteredNavItems, "main")}
             </div>
-            <div>
+            {/* <div>
               <h2 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
                 {isExpanded || isHovered || isMobileOpen ? "Others" : <HorizontaLDots />}
               </h2>
               {renderMenuItems(filteredOthersItems, "others")}
-            </div>
+            </div> */}
           </div>
         </nav>
       </div>

@@ -1,22 +1,16 @@
 "use client";
 
 import AccountDetails from "@/components/user-profile/AccountDetails";
-import ApplicationList from "@/components/user-profile/ApplicationList";
-import MediaCard from "@/components/user-profile/Media";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
-import { MediaDto } from "@/interface/media";
 import { UserMetaCardProps } from "@/interface/user";
 import { apiGetCurrentUser } from "@/service/auth";
-import { apiGetCurrentUserApplications, apiGetCurrentUserMedia } from "@/service/userService";
 import { setUserData } from "@/store/features/userSlice";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 
 export default function Profile() {
   const [user, setUser] = useState<UserMetaCardProps | null>(null);
-  const [mediaData, setMediaData] = useState<MediaDto | null>(null);
-  const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
   
@@ -24,17 +18,7 @@ export default function Profile() {
     const fetchUser = async () => {
       try {
         const userData = await apiGetCurrentUser();
-        const mediaResponse = await apiGetCurrentUserMedia();
-        const userApplications = await apiGetCurrentUserApplications();
-        
-        console.log("user", userData);
-
-        if (userApplications?.data) {
-          setApplications(userApplications.data);
-        }
         dispatch(setUserData(userData.data));
-
-        setMediaData(mediaResponse);
         setUser(userData);
       } catch (err) {
         console.error("Lỗi:", err);
@@ -54,8 +38,6 @@ export default function Profile() {
         <div className="space-y-6">
           <UserMetaCard data={user ?? {}} />
           <UserInfoCard data={{ ...user, openEdit: true }} />
-          {(mediaData?.data?.length ?? 0) > 0 && <MediaCard data={mediaData ?? {}} />}
-          <ApplicationList applications={applications} />
           <AccountDetails data={user ?? {}} />
         </div>
       </div>

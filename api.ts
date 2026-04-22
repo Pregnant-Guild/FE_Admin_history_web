@@ -12,6 +12,8 @@ export const API = {
   Media:{
     PRESIGNED: `${API_URL_ROOT}/media/presigned`,
     GET_MEDIA_BY_ID: (Id: number | string) => `${API_URL_ROOT}/media/${Id}`,
+    DELETE_MEDIA_BY_ID: (Id: number | string) => `${API_URL_ROOT}/media/${Id}`,
+    DELETE_MEDIA: `${API_URL_ROOT}/media`,
   },
   Auth : {
     LOGOUT: `${API_URL_ROOT}/auth/logout`,

@@ -218,7 +218,6 @@ export default function HistorianApplicationPage() {
             </button>
           }
         >
-          {/* Cập nhật Grid để chứa đủ các ô filter */}
           <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <div>
               <label className="block mb-2 text-sm font-medium">Tìm kiếm</label>

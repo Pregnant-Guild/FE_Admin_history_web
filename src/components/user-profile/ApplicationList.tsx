@@ -46,7 +46,7 @@ const processMedia = (mediaArray: any[]) => {
   return { type: "empty" };
 };
 
-export default function ApplicationSquareCardList({
+export default function ApplicationList({
   applications,
 }: {
   applications: any[];
@@ -56,9 +56,9 @@ export default function ApplicationSquareCardList({
 
   const handleViewDetail = (app: any) => {
     dispatch(setSelectedApplication(app));
-    router.push(`/profile/applications`);
+    router.push(`/account/applications`);
   };
-  // Tạo object mapping để render icon dựa trên status
+
   const StatusIcons: Record<string, React.ReactNode> = {
     APPROVED: (
       <svg
@@ -111,12 +111,21 @@ export default function ApplicationSquareCardList({
   };
 
   return (
-    <div className="p-5 border rounded-xl dark:border-zinc-800 lg:p-6 bg-white dark:bg-zinc-950">
-      <h4 className="text-lg font-bold text-zinc-800 dark:text-white/90 mb-5 tracking-tight">
-        Applications CV
-      </h4>
+    <div className="rounded-2xl border border-gray-200 bg-white p-6  dark:border-zinc-800 dark:bg-zinc-900/50">
+      <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-5 dark:border-zinc-800">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-white/90">
+          Hồ sơ{" "}
+          <span className="ml-2 text-sm font-normal text-gray-500">
+            ({applications.length} tệp)
+          </span>
+        </h3>
+        {/* <div className="text-sm text-gray-500">
+          Cập nhật lần cuối: {new Date().toLocaleDateString("vi-VN")}
+        </div> */}
+      </div>
 
-      <div className="flex flex-wrap gap-4">
+      {/* CHỈ SỬA DÒNG NÀY: Tăng số lượng cột (grid-cols) để các thẻ nhỏ lại */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {applications?.map((app) => {
           const mediaState = processMedia(app.media);
           const config = statusConfig[app.status] || statusConfig.PENDING;
@@ -125,77 +134,69 @@ export default function ApplicationSquareCardList({
             <div
               key={app.id}
               onClick={() => handleViewDetail(app)}
-              className="group relative h-60 aspect-square border dark:border-zinc-800 rounded-xl cursor-pointer overflow-hidden transition-all duration-300 hover:ring-2 hover:ring-blue-500/50"
+              className="group relative flex aspect-square w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-200 bg-gray-50  transition-all duration-300  hover:ring-2 hover:ring-blue-500/50 dark:border-zinc-700 dark:bg-zinc-800"
             >
-              {/* Media Layer */}
               <div className="absolute inset-0 z-0">
                 {mediaState.type === "image" ? (
                   <img
                     src={mediaState.src}
                     alt=""
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="w-full h-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center p-4">
+                  <div className="flex h-full w-full items-center justify-center bg-gray-100 p-4 dark:bg-zinc-800/80">
                     {mediaState.type === "documents" ? (
-                      <div className="flex flex-wrap gap-1 justify-center">
+                      <div className="flex flex-wrap justify-center gap-2">
                         {mediaState.extensions?.slice(0, 3).map((ext, i) => (
                           <span
                             key={i}
-                            className="text-[9px] font-black px-1.5 py-0.5 bg-white dark:bg-zinc-800 rounded border dark:border-zinc-700 uppercase"
+                            className="rounded bg-white px-2 py-1 text-xs font-bold uppercase text-gray-600  border border-gray-200 dark:border-zinc-600 dark:bg-zinc-700 dark:text-gray-200"
                           >
                             .{ext}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-zinc-400 to-zinc-600 opacity-20" />
+                      <div className="h-full w-full bg-gradient-to-br from-gray-200 to-gray-300 opacity-50 dark:from-zinc-600 dark:to-zinc-800" />
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Overlay Gradient */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/20 to-transparent transition-opacity group-hover:opacity-90" />
+              <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
 
-              {/* TOP INFO: FILE COUNT & STATUS ICON */}
-              <div className="absolute top-2 left-2 right-2 z-20 flex justify-between items-center">
+              <div className="absolute left-3 right-3 top-3 z-20 flex items-start justify-between">
                 {app.media?.length > 0 ? (
-                  <span className="text-[9px] font-bold text-white/60 bg-black/40 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-                    {app.media.length} FILE
+                  <span className="rounded-md bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white backdrop-blur-md">
+                    {app.media.length} TỆP
                   </span>
                 ) : (
                   <div />
                 )}
-
-                {/* Status Icon Wrapper */}
-                <div
-                  className={`${config.container} rounded-full`}
-                >
+                <div className={`${config.container} rounded-full `}>
                   {StatusIcons[app.status] || StatusIcons.PENDING}
                 </div>
               </div>
 
-              {/* Bottom Content */}
-              <div className="absolute bottom-2 left-2 right-2 z-20 text-white">
-                <div className="mb-1">
-                  <p className="text-[10px] font-bold uppercase opacity-80 truncate">
-                    {app.verify_type || "VERIFY"}
-                  </p>
-                  {app?.reviewer?.display_name && (
-                    <p className="text-[9px] font-medium text-blue-400 truncate">
-                      By: {app.reviewer.display_name}
-                    </p>
-                  )}
-                </div>
+              <div className="absolute bottom-0 left-0 right-0 z-20 p-4 text-white">
+                <p className="mb-1 truncate text-xs font-bold uppercase tracking-wider text-gray-300">
+                  {app.verify_type || "VERIFY"}
+                </p>
 
-                <div className="flex items-center justify-between pt-1 border-t border-white/10">
-                  <p className="text-[9px] font-bold text-white/70">
+                {app?.reviewer?.display_name && (
+                  <p className="mb-3 truncate text-sm font-medium text-blue-300">
+                    Người duyệt: {app.reviewer.display_name}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between border-t border-white/20 pt-2">
+                  <p className="text-xs font-semibold text-gray-300">
                     {formatFullDateTime(app.created_at)}
                   </p>
-                  <div className="transform translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+
+                  <div className="flex h-6 w-6 -translate-x-2 items-center justify-center rounded-full bg-white/20 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
                     <svg
-                      className="w-4 h-4 text-blue-400"
+                      className="h-3 w-3 text-white"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -204,7 +205,7 @@ export default function ApplicationSquareCardList({
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        d="M9 5l7 7-7 7"
                       />
                     </svg>
                   </div>
