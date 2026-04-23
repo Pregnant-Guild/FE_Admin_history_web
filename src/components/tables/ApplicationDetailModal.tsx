@@ -13,6 +13,7 @@ import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 import { IsolatedContent } from "@/components/ui/IsolatedContent";
 import { apiDeleteHistorianCV } from "@/service/historianService";
+import { statusConfig } from "@/service/handler";
 
 interface Props {
   isOpen: boolean;
@@ -101,7 +102,9 @@ export default function ApplicationDetailModal({
   if (!isOpen || !application) return null;
 
   const userData = application.user || {};
-
+  const currentStatus = statusConfig[application.status] || {
+    container: "bg-gray-50 border-gray-200 text-gray-600 shadow-sm",
+  };
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl dark:bg-gray-900 flex flex-col overflow-hidden text-gray-800 dark:text-gray-200">
@@ -149,13 +152,18 @@ export default function ApplicationDetailModal({
                   <p className="text-sm text-gray-500">
                     {userData.email || "Không có email"}
                   </p>
-                  <div className="mt-1 flex gap-2">
-                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase text-blue-600 bg-blue-100 rounded-md">
+                  <div className="mt-1 flex gap-2 items-center">
+                    <span className="px-3 py-1 text-[11px] font-bold uppercase text-blue-600 bg-blue-100 rounded-md ">
                       {application.verify_type}
                     </span>
                     <span
-                      className={`px-2 py-0.5 text-[10px] font-semibold uppercase rounded-md ${application.status === "PENDING" ? "bg-yellow-100 text-yellow-600" : "bg-red-100 text-red-500"}`}
-                    >
+                      className={`
+                        inline-flex items-center px-3 py-1 
+                        rounded-md border text-[11px] font-semibold uppercase 
+                        transition-colors duration-200
+                        ${currentStatus.container}
+                      `}
+                        >
                       {application.status}
                     </span>
                   </div>
