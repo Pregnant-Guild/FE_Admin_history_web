@@ -292,7 +292,7 @@ export default function UserTable() {
 
             <div>
               <label className="block mb-2 text-sm font-medium">
-                Auth Provider
+                Phương thức đăng nhập
               </label>
               <select
                 value={authProvider}

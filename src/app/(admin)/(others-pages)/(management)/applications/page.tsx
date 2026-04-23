@@ -187,7 +187,7 @@ export default function HistorianApplicationPage() {
 
   const pagination = tableData?.pagination;
 
-  console.log(tableData)
+  // console.log(tableData)
   // console.log("Pagination info:", pagination);
   return (
     <div>
@@ -230,6 +230,7 @@ export default function HistorianApplicationPage() {
               />
             </div>
 
+            {/* CẬP NHẬT: Loại xác minh */}
             <div>
               <label className="block mb-2 text-sm font-medium">
                 Loại xác minh
@@ -240,13 +241,14 @@ export default function HistorianApplicationPage() {
                 className="w-full px-3 py-2 bg-white dark:bg-gray-900 border rounded-lg cursor-pointer outline-none focus:border-brand-500"
               >
                 <option value="">Tất cả</option>
-                <option value="1">Thẻ nhận dạng nhà nghiên cứu</option>
-                <option value="2">Bằng cấp</option>
-                <option value="3">Chuyên gia</option>
-                <option value="4">Khác</option>
+                <option value="ID_CARD">Thẻ nhận dạng nhà nghiên cứu</option>
+                <option value="EDUCATION">Bằng cấp</option>
+                <option value="EXPERT">Chuyên gia</option>
+                <option value="OTHER">Khác</option>
               </select>
             </div>
 
+            {/* CẬP NHẬT: Trạng thái */}
             <div>
               <label className="block mb-2 text-sm font-medium">
                 Trạng thái
@@ -257,9 +259,9 @@ export default function HistorianApplicationPage() {
                 className="w-full px-3 py-2 bg-white dark:bg-gray-900 border rounded-lg cursor-pointer outline-none focus:border-brand-500"
               >
                 <option value="">Tất cả</option>
-                <option value="1">Đang chờ duyệt</option>
-                <option value="2">Đã duyệt</option>
-                <option value="3">Từ chối</option>
+                <option value="PENDING">Đang chờ duyệt</option>
+                <option value="APPROVED">Đã duyệt</option>
+                <option value="REJECTED">Từ chối</option>
               </select>
             </div>
 
