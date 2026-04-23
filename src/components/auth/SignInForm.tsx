@@ -166,6 +166,7 @@ export default function SignInForm() {
                     type="email"
                     onChange={handleChange}
                     defaultValue={formData.email}
+                    autoComplete="username"
                   />
                 </div>
 
@@ -182,6 +183,7 @@ export default function SignInForm() {
                       placeholder="Min. 8 characters"
                       onChange={handleChange}
                       defaultValue={formData.password}
+                      autoComplete="current-password"
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -192,7 +194,6 @@ export default function SignInForm() {
                   </div>
                 </div>
 
-                {/* Hiển thị thông báo lỗi nếu có */}
                 {errorMsg && (
                   <p className="text-sm text-red-500 font-medium">{errorMsg}</p>
                 )}
