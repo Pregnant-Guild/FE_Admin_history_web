@@ -418,7 +418,7 @@ export default function AssetsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between mt-6">
+         <div className="flex items-center justify-between mt-6">
             <p className="text-sm text-gray-500">
               Hiển thị {pagination?.total_records || 0} tệp tin
             </p>
@@ -433,6 +433,49 @@ export default function AssetsPage() {
           </div>
         </ComponentCard>
       </div>
-    </div>
+
+      {index >= 0 && tableData?.data && tableData.data[index] && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity"
+          onClick={() => setIndex(-1)} // Click ra vùng tối sẽ đóng
+        >
+          <div
+            className="relative flex flex-col items-center justify-center p-4 max-w-[90vw] max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()} // Bấm vào ảnh không bị đóng
+          >
+            {/* Nút X đóng Modal */}
+            <button
+              onClick={() => setIndex(-1)}
+              className="absolute -top-12 right-0 md:-right-12 text-white/70 hover:text-white transition-colors p-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-8 h-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <img
+              src={`${URL_MEDIA}${tableData.data[index].storage_key}`}
+              alt={tableData.data[index].original_name}
+              className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+            />
+
+            <p className="mt-4 text-sm font-medium text-white/90 truncate max-w-full">
+              {tableData.data[index].original_name}
+            </p>
+          </div>
+        </div>
+      )}
+    </div> 
   );
 }
