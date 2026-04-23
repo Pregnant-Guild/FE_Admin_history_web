@@ -9,10 +9,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { API, HOME_URL } from "../../../api";
 import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
+
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+
+  const router = useRouter();
 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -103,9 +107,15 @@ export default function SignUpForm() {
       };
 
       const signupRes = await apiSignUp(signupPayload);
-      Swal.fire("Đăng ký thành công! Đang chuyển hướng về trang đăng nhập!");
 
-      window.location.href = "/signin";
+      await Swal.fire({
+        title: "Tạo tài khoản thành công!. Quay về trang đăng nhập để tiếp tục",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      router.push("/signin");
+
     } catch (error) {
       const errorMessage =
         error instanceof Error

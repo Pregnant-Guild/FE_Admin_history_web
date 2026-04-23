@@ -41,13 +41,11 @@ export default function RoleUpgrade() {
 
   const handleIframeLoad = () => {
     const iframe = iframeRef.current;
-    // Đảm bảo iframe và nội dung bên trong đã sẵn sàng và cùng nguồn gốc (same-origin)
+
     if (!iframe || !iframe.contentDocument) return;
 
     const updateHeight = () => {
       if (iframe.contentDocument) {
-        // Mẹo: Reset height về 'auto' trước để lấy được chiều cao thực tế
-        // (đặc biệt khi người dùng xóa bớt nội dung làm chiều cao ngắn lại)
         iframe.style.height = "auto";
         const scrollHeight =
           iframe.contentDocument.documentElement.scrollHeight;
@@ -55,11 +53,8 @@ export default function RoleUpgrade() {
       }
     };
 
-    // 1. Cập nhật chiều cao ngay khi iframe load xong HTML
     updateHeight();
 
-    // 2. Dùng ResizeObserver để theo dõi những thay đổi sau khi load
-    // (VD: ảnh bên trong tải xong làm nội dung dài ra)
     const resizeObserver = new ResizeObserver(() => {
       updateHeight();
     });

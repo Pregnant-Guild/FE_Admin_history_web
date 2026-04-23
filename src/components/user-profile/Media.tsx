@@ -258,7 +258,7 @@ export default function MediaLibrary({
     <div className="rounded-2xl border border-gray-200 bg-white p-6  dark:border-zinc-800 dark:bg-zinc-900/50">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h3 className="text-xl font-bold text-gray-800 dark:text-white/90">
-          Media Assets{" "}
+          Media Assets
           <span className="ml-2 text-sm font-normal text-gray-500">
             ({localMedia.length} tệp)
           </span>
@@ -333,7 +333,7 @@ export default function MediaLibrary({
               Tài liệu ({documentFiles.length})
             </h4>
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
-              {" "}
+             
               {displayedDocs.map((item, idx) =>
                 renderItemCard(item, false, idx),
               )}

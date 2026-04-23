@@ -737,25 +737,48 @@ span.flatpickr-weekday,
   box-shadow: 0 1px 3px 0 rgba(16, 24, 40, 0.1),
     0 1px 2px 0 rgba(16, 24, 40, 0.06);
   opacity: 0.8;
-  cursor: grabbing; /* Changes the cursor to indicate dragging */
+  cursor: grabbing; 
 }
 
 html {
   scrollbar-gutter: stable;
+  overflow-y: scroll;
 }
+
 html {
   overflow-y: scroll;
 }
 
 ::-webkit-scrollbar {
-  -webkit-appearance: none;
-  width: 10px;
+  width: 10px; 
+  height: 8px; 
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gray-50); 
 }
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 5px;
-  background-color: rgba(0, 0, 0, .5);
-  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+  border-radius: 10px;
+  background-color: var(--color-gray-300);
+  border: 2px solid var(--color-gray-50);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-400);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-gray-950);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: var(--color-gray-700);
+  border: 2px solid var(--color-gray-950);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-600);
 }
 
 .ql-editor pre.ql-syntax {

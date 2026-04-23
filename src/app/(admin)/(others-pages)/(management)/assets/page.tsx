@@ -1,22 +1,18 @@
 "use client";
-import ComponentCard from "@/components/common/ComponentCard";
-import Swal from "sweetalert2";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import BasicTableOne from "@/components/tables/BasicTableOne";
-import ChangeRoleModal from "@/components/tables/ChangeRoleModal";
-import UserDetailModal from "@/components/tables/UserDetailModal";
-import { responseUserTable, getUserDto, fullDataUser } from "@/interface/admin";
-import {
-  apiDeleteUser,
-  apiGetAllRole,
-  apiGetListUser,
-  apiRestoreUser,
-} from "@/service/adminService";
-import { useEffect, useState, useCallback } from "react";
-import Pagination from "@/components/tables/Pagination";
-import { LIMIT_ITEM_TABLE } from "../../../../../../constant";
 
-export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
+import { useEffect, useState, useCallback } from "react";
+import ComponentCard from "@/components/common/ComponentCard";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import Pagination from "@/components/tables/Pagination";
+import { toast } from "sonner";
+import MediaTable, {
+  MediaItem,
+  MediaSortColumn,
+} from "@/components/tables/MediaTable";
+import { LIMIT_ITEM_TABLE } from "../../../../../../constant";
+import { deleteMedia, deleteMediaById, getMedia } from "@/service/mediaService";
+import { URL_MEDIA } from "../../../../../../api";
+import Swal from "sweetalert2";
 
 const formatDateTimeToISO = (
   dateStr: string,
@@ -24,66 +20,72 @@ const formatDateTimeToISO = (
   isEndOfDay: boolean = false,
 ): string | undefined => {
   if (!dateStr) return undefined;
-
   const time = timeStr || (isEndOfDay ? "23:59" : "00:00");
-
   return `${dateStr}T${time}:00.000000+07:00`;
 };
 
-export default function UserTable() {
-  const [page, setPage] = useState<number>(1);
-  const [limitInput, setLimitInput] = useState<string>(LIMIT_ITEM_TABLE.toString());
+export interface MediaResponse {
+  status: boolean;
+  message: string;
+  data: MediaItem[];
+  pagination: {
+    current_page: number;
+    page_size: number;
+    total_records: number;
+    total_pages: number;
+  };
+}
 
-  const [selectedRole, setSelectedRole] = useState<string>("");
-  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
+export default function AssetsPage() {
+  const [page, setPage] = useState<number>(1);
+  const [limitInput, setLimitInput] = useState<string>(
+    LIMIT_ITEM_TABLE.toString(),
+  );
 
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [authProvider, setAuthProvider] = useState<string>("");
-  const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
+  const [mimeTypeFilter, setMimeTypeFilter] = useState<string>("");
 
   const [fromDate, setFromDate] = useState<string>("");
   const [fromTime, setFromTime] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [toTime, setToTime] = useState<string>("");
 
-  const [selectedUser, setSelectedUser] = useState<fullDataUser | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [roleUser, setRoleUser] = useState<fullDataUser | null>(null);
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-
   const [debouncedParams, setDebouncedParams] = useState({
     search: "",
-    limit: 5,
-    authProvider: "",
+    limit: LIMIT_ITEM_TABLE,
+    mimeType: "",
     fromDate: "",
     fromTime: "",
     toDate: "",
     toTime: "",
   });
 
-  const [tableData, setTableData] = useState<responseUserTable | null>(null);
+  const [tableData, setTableData] = useState<MediaResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [sortBy, setSortBy] = useState<SortColumn | undefined>(undefined);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const [sortBy, setSortBy] = useState<MediaSortColumn>("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // State quản lý checkbox & logic View (Yêu cầu 1 & 3)
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [index, setIndex] = useState<number>(-1); // Dùng cho thư viện xem ảnh
+  const [isSelectionMode, setIsSelectionMode] = useState<boolean>(false);
 
   const handleReset = () => {
     setSearchTerm("");
-    setAuthProvider("");
-    setIsDeleted(undefined);
-    setSelectedRole("");
+    setMimeTypeFilter("");
     setLimitInput(LIMIT_ITEM_TABLE.toString());
-
     setFromDate("");
     setFromTime("");
     setToDate("");
     setToTime("");
-
     setPage(1);
+    setSelectedIds([]);
 
     setDebouncedParams({
       search: "",
       limit: LIMIT_ITEM_TABLE,
-      authProvider: "",
+      mimeType: "",
       fromDate: "",
       fromTime: "",
       toDate: "",
@@ -92,25 +94,11 @@ export default function UserTable() {
   };
 
   useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const res = await apiGetAllRole();
-        if (res?.status) {
-          setRoles(res.data);
-        }
-      } catch (err) {
-        console.error("Lỗi lấy danh sách role:", err);
-      }
-    };
-    fetchRoles();
-  }, []);
-
-  useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedParams({
         search: searchTerm,
         limit: parseInt(limitInput) || LIMIT_ITEM_TABLE,
-        authProvider: authProvider,
+        mimeType: mimeTypeFilter,
         fromDate,
         fromTime,
         toDate,
@@ -122,35 +110,36 @@ export default function UserTable() {
   }, [
     searchTerm,
     limitInput,
-    authProvider,
+    mimeTypeFilter,
     fromDate,
     fromTime,
     toDate,
     toTime,
   ]);
 
-  const fetchUsers = useCallback(async () => {
+  useEffect(() => {
+    fetchMediaData();
+  }, [page, debouncedParams, sortBy, sortOrder]);
+
+  const fetchMediaData = useCallback(async () => {
     setLoading(true);
     try {
       const payload: any = {
         page: page,
         limit: debouncedParams.limit,
         search: debouncedParams.search || undefined,
-        auth_provider: debouncedParams.authProvider || undefined,
-        is_deleted: isDeleted,
         sort: sortBy,
         order: sortOrder,
-        role_ids: selectedRole ? [selectedRole] : undefined,
       };
 
-      // Thêm format ngày giờ vào payload
+      if (debouncedParams.mimeType)
+        payload.mime_type = debouncedParams.mimeType;
       const createdFrom = formatDateTimeToISO(
         debouncedParams.fromDate,
         debouncedParams.fromTime,
         false,
       );
       if (createdFrom) payload.created_from = createdFrom;
-
       const createdTo = formatDateTimeToISO(
         debouncedParams.toDate,
         debouncedParams.toTime,
@@ -158,23 +147,20 @@ export default function UserTable() {
       );
       if (createdTo) payload.created_to = createdTo;
 
-      const response = await apiGetListUser(payload as getUserDto);
+      const response = await getMedia(payload);
       if (response?.status) {
         setTableData(response);
       }
     } catch (err) {
-      console.error("Fetch error:", err);
+      toast.error("Lỗi lấy danh sách tệp tin");
+      console.error("Lỗi lấy danh sách tệp tin:", err);
       setTableData(null);
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedParams, isDeleted, sortBy, sortOrder, selectedRole]);
+  }, [page, debouncedParams, sortBy, sortOrder]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  const handleSort = (column: SortColumn) => {
+  const handleSort = (column: MediaSortColumn) => {
     setPage(1);
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -184,75 +170,121 @@ export default function UserTable() {
     }
   };
 
-  const pagination = tableData?.pagination;
-  
-  // console.log(pagination);
-
-  const handleOpenDetail = (user: fullDataUser) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
+  // --- LOGIC YÊU CẦU 1: Chọn nhiều ---
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+    );
   };
 
-  const handleOpenRoleModal = (user: fullDataUser) => {
-    setRoleUser(user);
-    setIsRoleModalOpen(true);
+  const handleToggleSelectAll = (checked: boolean) => {
+    if (checked && tableData) {
+      setSelectedIds(tableData.data.map((i) => i.id));
+    } else {
+      setSelectedIds([]);
+    }
   };
 
-  const handleDelete = async (user: fullDataUser) => {
+  const toggleItemSelection = (id: string) => {
+    handleToggleSelect(id);
+  };
+
+  const handleDeleteMulti = async () => {
+    if (selectedIds.length === 0) return;
+
     const result = await Swal.fire({
-      title: "Xác nhận khóa?",
-      text: `Bạn có chắc muốn khóa người dùng ${user.profile?.display_name || user.email}?`,
+      title: "Xác nhận xóa?",
+      text: `Bạn có chắc chắn muốn xóa ${selectedIds.length} tệp đã chọn? Hành động này không thể hoàn tác!`,
       icon: "warning",
       showCancelButton: true,
-      showCloseButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Đồng ý, khóa!",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280", 
+      confirmButtonText: "Xóa",
       cancelButtonText: "Hủy",
+      reverseButtons: true, 
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await deleteMedia(selectedIds);
+        if (response?.status) {
+          await Swal.fire({
+            title: "Đã xóa!",
+            text: `Đã xóa thành công ${selectedIds.length} tệp tin.`,
+            icon: "success",
+            confirmButtonColor: "#3b82f6",
+            timer: 2000,
+          });
+          setSelectedIds([]);
+          fetchMediaData();
+        } else {
+          toast.error(response?.message || "Xóa tệp thất bại");
+        }
+      } catch (error) {
+        toast.error("Đã xảy ra lỗi khi xóa");
+        console.error(error);
+      }
+    }
+  };
+
+  const handleDeleteSingle = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Xóa tệp tin?",
+      text: "Bạn có chắc chắn muốn xóa tệp này không?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Xóa ngay",
+      cancelButtonText: "Quay lại",
       reverseButtons: true,
     });
 
     if (result.isConfirmed) {
       try {
-        await apiDeleteUser(user.id);
-        Swal.fire(
-          "Đã khóa!",
-          "Người dùng đã bị tạm dừng hoạt động.",
-          "success",
-        );
-        fetchUsers();
-      } catch (err) {
-        Swal.fire("Lỗi!", "Không thể thực hiện thao tác này.", "error");
+        const response = await deleteMediaById(id);
+        if (response?.status) {
+          await Swal.fire({
+            title: "Thành công!",
+            text: "Tệp tin đã được xóa bỏ.",
+            icon: "success",
+            confirmButtonColor: "#3b82f6",
+            timer: 1500,
+          });
+          setSelectedIds((prev) => prev.filter((i) => i !== id));
+          fetchMediaData();
+        } else {
+          toast.error(response?.message || "Không thể xóa tệp");
+        }
+      } catch (error) {
+        toast.error("Lỗi hệ thống khi xóa");
+        console.error(error);
       }
     }
   };
 
-  const handleRestore = async (user: fullDataUser) => {
-    const result = await Swal.fire({
-      title: "Khôi phục tài khoản?",
-      text: `Khôi phục quyền truy cập cho ${user.profile?.display_name || user.email}?`,
-      icon: "question",
-      showCancelButton: true,
-      showCloseButton: true,
-      confirmButtonColor: "#28a745",
-      confirmButtonText: "Xác nhận",
-      cancelButtonText: "Hủy",
-    });
+  const handleItemClick = (item: MediaItem, idx: number) => {
+    const isImage = item.mime_type.includes("image");
 
-    if (result.isConfirmed) {
-      try {
-        await apiRestoreUser(user.id);
-        Swal.fire("Thành công", "Tài khoản đã được khôi phục.", "success");
-        fetchUsers();
-      } catch (err) {
-        Swal.fire("Thất bại", "Vui lòng thử lại sau.", "error");
+    if (isSelectionMode) {
+      toggleItemSelection(item.id);
+    } else {
+      if (isImage) {
+        setIndex(idx);
+      } else {
+        const fileUrl = `${URL_MEDIA}${item.storage_key}`;
+        const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+        window.open(googleDocsUrl, "_blank");
       }
     }
   };
+
+  const pagination = tableData?.pagination;
 
   return (
     <div>
-      <PageBreadcrumb pageTitle="Quản lý người dùng" />
+      <PageBreadcrumb pageTitle="Quản lý tệp tin (Assets)" />
+
       <div className="space-y-6">
         <ComponentCard
           title="Bộ lọc tìm kiếm"
@@ -280,52 +312,28 @@ export default function UserTable() {
         >
           <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <div>
-              <label className="block mb-2 text-sm font-medium">Search</label>
+              <label className="block mb-2 text-sm font-medium">Tìm kiếm</label>
               <input
                 type="text"
-                placeholder="Name, email..."
+                placeholder="Tên tệp, ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
               />
             </div>
-
             <div>
-              <label className="block mb-2 text-sm font-medium">
-                Auth Provider
-              </label>
+              <label className="block mb-2 text-sm font-medium">Loại tệp</label>
               <select
-                value={authProvider}
-                onChange={(e) => setAuthProvider(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 cursor-pointer bg-white outline-none focus:border-brand-500"
+                value={mimeTypeFilter}
+                onChange={(e) => setMimeTypeFilter(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-900 border rounded-lg cursor-pointer outline-none focus:border-brand-500"
               >
                 <option value="">Tất cả</option>
-                <option value="google">Google</option>
+                <option value="image">Hình ảnh (webp, jpeg, png...)</option>
+                <option value="application/pdf">PDF</option>
+                <option value="application/msword">Word (doc, docx)</option>
               </select>
             </div>
-
-            <div>
-              <label className="block mb-2 text-sm font-medium">
-                Trạng thái
-              </label>
-              <select
-                onChange={(e) =>
-                  setIsDeleted(
-                    e.target.value === ""
-                      ? undefined
-                      : e.target.value === "true",
-                  )
-                }
-                value={isDeleted === undefined ? "" : isDeleted ? "true" : "false"}
-                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500 cursor-pointer"
-              >
-                <option value="">Tất cả</option>
-                <option value="false">Hoạt động</option>
-                <option value="true">Đã xóa</option>
-              </select>
-            </div>
-
-            {/* Từ ngày */}
             <div>
               <label className="block mb-2 text-sm font-medium">Từ ngày</label>
               <div className="flex gap-2">
@@ -343,8 +351,6 @@ export default function UserTable() {
                 />
               </div>
             </div>
-
-            {/* Đến ngày */}
             <div>
               <label className="block mb-2 text-sm font-medium">Đến ngày</label>
               <div className="flex gap-2">
@@ -362,11 +368,9 @@ export default function UserTable() {
                 />
               </div>
             </div>
-
-            {/* Limit */}
             <div>
               <label className="block mb-2 text-sm font-medium">
-                Số lượng (Limit)
+                Hiển thị (Limit)
               </label>
               <input
                 type="number"
@@ -378,7 +382,22 @@ export default function UserTable() {
           </div>
         </ComponentCard>
 
-        <ComponentCard title="Danh sách người dùng">
+        <ComponentCard
+          title="Danh sách tệp tin"
+          headerAction={
+            <button
+              onClick={handleDeleteMulti}
+              disabled={selectedIds.length === 0}
+              className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors border ${
+                selectedIds.length > 0
+                  ? "bg-red-500 text-white border-red-500 hover:bg-red-600 shadow-sm cursor-pointer"
+                  : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:border-gray-700"
+              }`}
+            >
+              Xóa {selectedIds.length > 0 && `(${selectedIds.length})`}
+            </button>
+          }
+        >
           <div className="relative min-h-[300px]">
             {loading && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 rounded-xl">
@@ -386,23 +405,22 @@ export default function UserTable() {
               </div>
             )}
 
-            <BasicTableOne
+            <MediaTable
               data={tableData?.data || []}
               onSort={handleSort}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              onViewDetail={handleOpenDetail}
-              roles={roles}
-              selectedRole={selectedRole}
-              onFilterRole={(role) => setSelectedRole(role)}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleSelectAll={handleToggleSelectAll}
+              onViewSingle={handleItemClick}
+              onDeleteSingle={handleDeleteSingle}
             />
           </div>
 
           <div className="flex items-center justify-between mt-6">
             <p className="text-sm text-gray-500">
-              Hiển thị trang {pagination?.current_page || 1} /{" "}
-              {pagination?.total_pages || 1} ({pagination?.total_records || 0}{" "}
-              kết quả)
+              Hiển thị {pagination?.total_records || 0} tệp tin
             </p>
 
             {pagination && pagination.total_pages > 1 && (
@@ -413,28 +431,6 @@ export default function UserTable() {
               />
             )}
           </div>
-
-          <UserDetailModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            user={selectedUser}
-            onChangeRole={handleOpenRoleModal}
-            onDelete={(u) => {
-              handleDelete(u);
-              setIsModalOpen(false);
-            }}
-            onRestore={(u) => {
-              handleRestore(u);
-              setIsModalOpen(false);
-            }}
-          />
-
-          <ChangeRoleModal
-            isOpen={isRoleModalOpen}
-            onClose={() => setIsRoleModalOpen(false)}
-            user={roleUser}
-            onSuccess={fetchUsers}
-          />
         </ComponentCard>
       </div>
     </div>

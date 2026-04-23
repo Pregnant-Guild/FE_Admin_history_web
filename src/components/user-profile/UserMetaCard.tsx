@@ -7,6 +7,7 @@ import { uploadMedia } from "@/service/mediaService";
 import { toast } from "sonner";
 import { apiUpdateUser } from "@/service/userService";
 import { URL_MEDIA } from "../../../api";
+import { useRouter } from "next/navigation";
 
 export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
   const currentAvatar =
@@ -14,6 +15,8 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
   const [previewImage, setPreviewImage] = useState(currentAvatar);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (data.data?.profile?.avatar_url) {
@@ -49,15 +52,11 @@ export default function UserMetaCard({ data }: { data: UserMetaCardProps }) {
         if (data.data) {
           try {
             await apiUpdateUser({ avatar_url: url });
+            window.location.href = window.location.pathname;
             toast.success("Cập nhật avatar thành công!");
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
           } catch (error) {
             console.error("Lỗi khi cập nhật avatar:", error);
-            toast.warning(
-              "Ảnh đã được tải lên nhưng không thể cập nhật hồ sơ. Vui lòng thử lại!",
-            );
+            toast.warning("Lỗi khi cập nhật ảnh đại diện. Vui lòng thử lại!");
           }
         }
       }

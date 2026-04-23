@@ -22,6 +22,7 @@ export default function ApplicationDetailPage() {
     (state: RootState) => state.user.selectedApplication,
   );
   const router = useRouter();
+  
   const [isDeleting, setIsDeleting] = useState(false);
   const [errMessage, setErrMessage] = useState<string>(
     "Không thể xóa đơn đăng ký này.",

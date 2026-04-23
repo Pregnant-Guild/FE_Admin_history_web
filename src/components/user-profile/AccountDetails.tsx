@@ -22,6 +22,8 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
   });
 
   const [showOldPass, setShowOldPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -32,6 +34,8 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
         confirm_password: "",
       });
       setShowOldPass(false);
+      setShowNewPass(false);
+      setShowConfirmPass(false);
       setError("");
     }
   }, [isOpen]);
@@ -74,10 +78,15 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
         `${err?.response?.data?.message}, Cập nhật thất bại, vui lòng kiểm tra lại thông tin. Mật khẩu tối thiểu 8 ký tự, 1 in hoa, 1 số và 1 ký tự đặc biệt.` ||
           "Failed to update password. Please check your current password.",
       );
-      toast.error(err?.response?.data?.message || "Cập nhật thất bại, vui lòng kiểm tra lại thông tin!");
+      toast.error(
+        err?.response?.data?.message ||
+          "Cập nhật thất bại, vui lòng kiểm tra lại thông tin!",
+      );
     }
   };
-
+  const isPasswordMismatch =
+    formValues.confirm_password.length > 0 &&
+    formValues.new_password !== formValues.confirm_password;
   return (
     <>
       <div className="p-5 border border-red-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -149,7 +158,6 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
                   />
                 </div>
 
-                {/* 2. Current Password - CÓ NÚT HIỆN MẬT KHẨU */}
                 <div className="col-span-2 relative">
                   <Label>Current Password</Label>
                   <div className="relative">
@@ -174,28 +182,63 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
                   </div>
                 </div>
 
-                {/* 3. New Password - LUÔN ẨN */}
-                <div className="col-span-2 lg:col-span-1">
+                <div className="col-span-2 relative">
                   <Label>New Password</Label>
-                  <Input
-                    type="text"
-                    name="new_password"
-                    placeholder="Enter new password"
-                    defaultValue={formValues.new_password}
-                    onChange={handleChange}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showNewPass ? "text" : "password"}
+                      name="new_password"
+                      placeholder="Enter new password"
+                      defaultValue={formValues.new_password}
+                      onChange={handleChange}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPass(!showNewPass)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      {showNewPass ? (
+                        <EyeCloseIcon className="w-5 h-5" />
+                      ) : (
+                        <EyeIcon className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-
-                {/* 4. Confirm New Password - LUÔN ẨN */}
-                <div className="col-span-2 lg:col-span-1">
+                <div className="col-span-2 relative">
                   <Label>Confirm New Password</Label>
-                  <Input
-                    type="text"
-                    name="confirm_password"
-                    placeholder="Re-type new password"
-                    defaultValue={formValues.confirm_password}
-                    onChange={handleChange}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPass ? "text" : "password"}
+                      name="confirm_password"
+                      placeholder="Confirm new password"
+                      defaultValue={formValues.confirm_password}
+                      onChange={handleChange}
+                      // Thêm class viền đỏ ở đây
+                      className={
+                        isPasswordMismatch
+                          ? "border-red-500 focus:border-red-500 dark:border-red-500"
+                          : ""
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPass(!showConfirmPass)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      {showConfirmPass ? (
+                        <EyeCloseIcon className="w-5 h-5" />
+                      ) : (
+                        <EyeIcon className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {/* Thêm một dòng text báo lỗi nhỏ ngay dưới ô input nếu muốn */}
+                  {isPasswordMismatch && (
+                    <p className="mt-1 text-xs text-red-500">
+                      Mật khẩu không khớp!
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -211,7 +254,11 @@ export default function AccountDetails({ data }: { data: UserMetaCardProps }) {
               >
                 Close
               </Button>
-              <Button size="sm" type="submit" className="bg-red-500 hover:bg-red-600 ">
+              <Button
+                size="sm"
+                type="submit"
+                className="bg-red-500 hover:bg-red-600 "
+              >
                 Save Changes
               </Button>
             </div>

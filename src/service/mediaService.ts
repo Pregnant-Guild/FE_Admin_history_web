@@ -117,3 +117,14 @@ export const deleteMedia = async (mediaIds: string[]) => {
   });
   return response?.data;
 }
+export const deleteMediaById = async (mediaId: string) => {
+  const response = await api.delete(API.Media.DELETE_MEDIA_BY_ID(mediaId));
+  return response?.data;
+}
+
+export const getMedia = async (payload: any) => {
+  const response = await api.get(API.Media.GET_MEDIA, {
+    params: payload,
+  });
+  return response?.data;
+}

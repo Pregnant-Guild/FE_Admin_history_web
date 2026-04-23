@@ -10,6 +10,7 @@ export const API = {
     APPLICATION: `${API_URL_ROOT}/users/current/application`
   },
   Media:{
+    GET_MEDIA: `${API_URL_ROOT}/media`,
     PRESIGNED: `${API_URL_ROOT}/media/presigned`,
     GET_MEDIA_BY_ID: (Id: number | string) => `${API_URL_ROOT}/media/${Id}`,
     DELETE_MEDIA_BY_ID: (Id: number | string) => `${API_URL_ROOT}/media/${Id}`,
