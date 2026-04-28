@@ -9,7 +9,33 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
-  const allPages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const getPaginationItems = () => {
+    const delta = 1;
+    const range = [];
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+
+    const rangeWithDots: (number | string)[] = [];
+    let l: number | undefined;
+    for (const i of range) {
+      if (l !== undefined) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l > 2) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
+  const pages = getPaginationItems();
 
   return (
     <div className="flex items-center ">
@@ -21,21 +47,25 @@ const Pagination: React.FC<PaginationProps> = ({
         Previous
       </button>
       <div className="flex items-center gap-2">
-        {currentPage > 3 && <span className="px-2">...</span>}
-        {allPages.map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-4 py-2 rounded ${
-              currentPage === page
-                ? "bg-brand-500 text-white"
-                : "text-gray-700 dark:text-gray-400"
-            } flex w-10 items-center justify-center h-10 rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500`}
-          >
-            {page}
-          </button>
-        ))}
-        {currentPage < totalPages - 2 && <span className="px-2">...</span>}
+        {pages.map((page, index) =>
+          page === '...' ? (
+            <span key={`dots-${index}`} className="flex h-10 w-10 items-center justify-center text-gray-500">
+              ...
+            </span>
+          ) : (
+            <button
+              key={page}
+              onClick={() => onPageChange(page as number)}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500 ${
+                currentPage === page
+                  ? "bg-brand-500 text-white"
+                  : "text-gray-700 dark:text-gray-400"
+              }`}
+            >
+              {page}
+            </button>
+          ),
+        )}
       </div>
 
       <button

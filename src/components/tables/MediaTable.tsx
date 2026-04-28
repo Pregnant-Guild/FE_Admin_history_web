@@ -185,7 +185,7 @@ export default function MediaTable({
                     <TableCell className="px-5 py-4 text-start font-mono text-theme-xs truncate max-w-[250px]">
                       {item.original_name}
                     </TableCell>
-                    <TableCell className="px-5 py-4 text-start">
+                    <TableCell className="px-5 py-4 text-start max-w-[100px] truncate">
                       <div className="flex flex-col gap-1">
                         <div>{getMimeTypeBadge(item.mime_type)}</div>
                         <span className="text-[10px] text-gray-400">{item.mime_type}</span>

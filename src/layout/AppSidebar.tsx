@@ -70,6 +70,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
       { name: "Tài Khoản", path: "/user-information", pro: false, roles: ["ADMIN", "MOD"] },
       { name: "Hồ Sơ Nhà Sử Học", path: "/applications", pro: false, roles: ["ADMIN", "MOD"] },
       { name: "Tệp Đăng Tải", path: "/assets", pro: false, roles: ["ADMIN", "MOD"] },
+      { name: "Dự Án", path: "/project", pro: false, roles: ["ADMIN", "MOD"] },
     ],
   },
   {
