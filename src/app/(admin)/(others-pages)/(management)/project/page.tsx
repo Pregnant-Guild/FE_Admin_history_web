@@ -19,6 +19,7 @@ import {
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 import { LIMIT_ITEM_TABLE } from "../../../../../../constant";
+import { ProjectsResponse } from "@/interface/project";
 
 const formatDateTimeToISO = (
   dateStr: string,
@@ -30,19 +31,10 @@ const formatDateTimeToISO = (
   return `${dateStr}T${time}:00.000000+07:00`;
 };
 
-export interface ProjectsResponse {
-  status: boolean;
-  message: string;
-  data: ProjectItem[];
-  pagination: {
-    current_page: number;
-    page_size: number;
-    total_records: number;
-    total_pages: number;
-  };
-}
-
-export default function ProjectsPage() {
+export default function ProjectsPage(_props: {
+  params: unknown;
+  searchParams: unknown;
+}) {
   const router = useRouter();
   const [page, setPage] = useState<number>(1);
   const [limitInput, setLimitInput] = useState<string>(
@@ -69,7 +61,7 @@ export default function ProjectsPage() {
     toTime: "",
   });
 
-  const [tableData, setTableData] = useState<ProjectsResponse | null>(null);
+  const [tableData, setTableData] = useState<ProjectsResponse<ProjectItem> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const [sortBy, setSortBy] = useState<ProjectSortColumn>("created_at");
@@ -134,7 +126,7 @@ export default function ProjectsPage() {
       const response = await getProjects(payload);
 
       if (response?.status) {
-        setTableData(response as unknown as ProjectsResponse);
+        setTableData(response as unknown as ProjectsResponse<ProjectItem>);
       }
     } catch (err) {
       toast.error("Lỗi lấy danh sách dự án");
@@ -159,48 +151,9 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleUpdate = async (project: ProjectItem) => {
-     /* Tương tự handleCreate, sử dụng Swal.fire để tạo form cập nhật */
-     toast.info(`Chức năng cập nhật cho dự án "${project.title}"`);
-  };
-
-  const handleDelete = async (id: string) => {
-    const result = await Swal.fire({
-      title: "Xác nhận xóa?",
-      text: "Bạn có chắc chắn muốn xóa dự án này? Hành động này không thể hoàn tác!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Xóa",
-      cancelButtonText: "Hủy",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        // const response = await deleteProject(id);
-        // if (response?.status) {
-          toast.success("Đã xóa dự án thành công.");
-          fetchProjectsData();
-        // } else {
-        //   toast.error(response?.message || "Xóa dự án thất bại");
-        // }
-      } catch (error) {
-        toast.error("Đã xảy ra lỗi khi xóa");
-        console.error(error);
-      }
-    }
-  };
-
-  const handleTransferOwner = async (project: ProjectItem) => {
-    /* Sử dụng Swal.fire với input để nhập New Owner ID */
-    toast.info(`Chức năng chuyển quyền sở hữu cho dự án "${project.title}"`);
-  };
 
   const handleViewDetails = (id: string) => {
-    // Điều hướng đến trang chi tiết dự án (quản lý members, commits)
-    // router.push(`/projects/${id}`);
-    toast.info(`Xem chi tiết dự án ID: ${id}`);
+    router.push(`/projects/${id}`);
   };
 
   const pagination = tableData?.pagination;
@@ -256,9 +209,7 @@ export default function ProjectsPage() {
               onSort={handleSort}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-              onTransferOwner={handleTransferOwner}
+              
               onViewDetails={handleViewDetails}
             />
           </div>

@@ -1,63 +1,14 @@
 import api from "@/config/config";
 import { API } from "../../api";
-import { Project } from "@/interface/project";
+import { ProjectMemberPayload, ChangeOwnerPayload, CreateCommitPayload, GetProjectsParams, Project, RestoreCommitPayload, UpdateProjectPayload } from "@/interface/project";
 import { CommonResponse, CursorPaginatedResponse, PaginatedResponse } from "@/interface/common";
-
-// ==========================================
-// TYPES & INTERFACES (Cơ bản theo logic chuẩn)
-// ==========================================
-
-export interface GetProjectsParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sort?: "created_at" | "updated_at" | "title";
-  order?: "asc" | "desc";
-  statuses?: string; // comma-separated
-  user_ids?: string; // comma-separated
-  created_from?: string; // ISO date string
-  created_to?: string; // ISO date string
-}
-
-
-export interface UpdateProjectPayload {
-  title?: string;
-  description?: string;
-  status?: "PRIVATE" | "PUBLIC" | "ARCHIVE";
-}
-
-export interface AddMemberPayload {
-  user_id: string;
-  role: "EDITOR" | "VIEWER";
-}
-
-export interface UpdateMemberRolePayload {
-  role: "EDITOR" | "VIEWER";
-}
-
-export interface ChangeOwnerPayload {
-  new_owner_id: string;
-}
-
-export interface CreateCommitPayload {
-  edit_summary: string;
-  snapshot_json: number[]; 
-}
-
-export interface RestoreCommitPayload {
-  commit_id: string;
-}
-
-// ==========================================
-// 1. NHÓM: QUẢN LÝ DỰ ÁN (PROJECTS)
-// ==========================================
 
 export const getProjects = async (params: GetProjectsParams): Promise<PaginatedResponse<Project>> => {
   const response = await api.get(API.Project.GET_ALL, { params });
   return response?.data;
 };
 
-export const getProjectDetail = async (id: string): Promise<CommonResponse<Project>> => {
+export const getProjectDetailByID = async (id: string): Promise<CommonResponse<Project>> => {
   const response = await api.get(API.Project.GET_DETAIL(id));
   return response?.data;
 };
@@ -81,12 +32,12 @@ export const transferProjectOwnership = async (id: string, payload: ChangeOwnerP
 // 2. NHÓM: QUẢN LÝ THÀNH VIÊN (MEMBERS)
 // ==========================================
 
-export const addProjectMember = async (id: string, payload: AddMemberPayload): Promise<CommonResponse> => {
+export const addProjectMember = async (id: string, payload: ProjectMemberPayload): Promise<CommonResponse> => {
   const response = await api.post(API.Project.ADD_MEMBER(id), payload);
   return response?.data;
 };
 
-export const updateProjectMemberRole = async (id: string, userId: string, payload: UpdateMemberRolePayload): Promise<CommonResponse> => {
+export const updateProjectMemberRole = async (id: string, userId: string, payload: ProjectMemberPayload): Promise<CommonResponse> => {
   const response = await api.put(API.Project.UPDATE_MEMBER(id, userId), payload);
   return response?.data;
 };
@@ -105,7 +56,7 @@ export const createProjectCommit = async (id: string, payload: CreateCommitPaylo
   return response?.data;
 };
 
-export const getProjectCommits = async (id: string): Promise<CommonResponse> => { // Assuming it returns a list of commits
+export const getProjectCommits = async (id: string): Promise<CommonResponse> => {
   const response = await api.get(API.Project.GET_COMMITS(id));
   return response?.data;
 };
@@ -116,15 +67,6 @@ export const restoreProjectCommit = async (id: string, payload: RestoreCommitPay
 };
 
 export const getCurrentProject = async (params?: { cursor_id?: string; limit?: number }): Promise<CursorPaginatedResponse<Project>> => {
-  const response = await api.get(API.Project.GET_CURRENT_PROJECT, { params });
-  return response?.data;
-};
-
-// ==========================================
-// 4. NHÓM: LẤY DỰ ÁN QUA USER
-// ==========================================
-
-export const getUserProjects = async (userId: string, params?: { cursor_id?: string; limit?: number }): Promise<CursorPaginatedResponse<Project>> => {
   const response = await api.get(API.Project.GET_CURRENT_PROJECT, { params });
   return response?.data;
 };
