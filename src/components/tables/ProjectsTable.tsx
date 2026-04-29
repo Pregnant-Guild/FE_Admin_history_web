@@ -150,16 +150,16 @@ export default function ProjectsTable({
                     )}
                   </div>
                   <div className="flex items-center max-w-[250px]">
-                    <span className="text-lg font-medium text-gray-700 dark:text-gray-300 truncate">
+                    <span className="text-[14px] font-medium text-gray-700 dark:text-gray-300 truncate">
                       {item.user?.display_name || "Unknown"}
                     </span>
                   </div>
 
-                  <span className="text-lg text-gray-400 dark:text-gray-600 shrink-0">
+                  <span className="text-[14px] text-gray-400 dark:text-gray-600 shrink-0">
                     /
                   </span>
 
-                  <h3 className="text-lg font-semibold text-blue-600 dark:text-[#58a6ff] truncate max-w-[300px]">
+                  <h3 className="text-[14px] font-semibold text-blue-600 dark:text-[#58a6ff] truncate max-w-[300px]">
                     {item.title}
                   </h3>
 

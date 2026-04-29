@@ -15,6 +15,7 @@ import {
 } from "@/service/projectService";
 import { Project } from "@/interface/project";
 import Swal from "sweetalert2";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 
 type TabType = "overview" | "members" | "settings";
 
@@ -84,7 +85,7 @@ export default function ProjectDetailsPage() {
       html: `Bạn có chắc chắn muốn chuyển dự án này cho <b>${memberName}</b>?<br/>Hành động này <b>không thể hoàn tác</b> và bạn sẽ không còn là chủ sở hữu nữa.`,
       icon: "error",
       showCancelButton: true,
-      confirmButtonColor: "#238636", 
+      confirmButtonColor: "#238636",
       cancelButtonColor: "#30363d",
       confirmButtonText: "Tôi hiểu, chuyển quyền sở hữu",
       cancelButtonText: "Hủy bỏ",
@@ -127,22 +128,54 @@ export default function ProjectDetailsPage() {
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     try {
-      await updateProjectMemberRole(id, userId, { role: newRole as any });
-      toast.success("Cập nhật quyền thành công");
-      fetchProject();
-    } catch (error) {
-      toast.error("Cập nhật quyền thất bại");
+      const res = await updateProjectMemberRole(id, userId, {
+        role: newRole as any,
+      });
+
+      if (res?.status) {
+        toast.success("Cập nhật quyền thành công");
+        fetchProject();
+      } else {
+        toast.error(res?.message || "Cập nhật quyền thất bại");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Cập nhật quyền thất bại";
+      toast.error(errorMessage);
     }
   };
 
   const handleRemoveMember = async (userId: string) => {
-    if (!confirm("Xác nhận xóa thành viên này?")) return;
+    // 1. Hiển thị hộp thoại xác nhận bằng SweetAlert2
+    const result = await Swal.fire({
+      title: "Xác nhận xóa?",
+      text: "Bạn có chắc chắn muốn xóa thành viên này khỏi dự án?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
-      await removeProjectMember(id, userId);
-      toast.success("Đã xóa thành viên");
+      const res = await removeProjectMember(id, userId);
+
+      if (res?.status) {
+        toast.success("Đã xóa thành viên");
+      } else {
+        toast.error(res?.message || "Xóa thành viên thất bại");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Xóa thành viên thất bại";
+      toast.error(errorMessage);
+
+      console.error("Remove Member Error:", error);
+    } finally {
       fetchProject();
-    } catch (error) {
-      toast.error("Xóa thành viên thất bại");
     }
   };
 
@@ -192,7 +225,8 @@ export default function ProjectDetailsPage() {
     );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0d1117] text-gray-900 dark:text-[#c9d1d9] font-sans">
+    <div className="min-h-screen  dark:bg-[#0d1117] text-gray-900 dark:text-[#c9d1d9] font-sans">
+      <PageBreadcrumb pageTitle="Chi tiết dự án" />
       <div className="pt-8 border-b border-gray-200 dark:border-[#30363d] bg-gray-50 dark:bg-[#0d1117]">
         <div className="px-6">
           <div className="flex items-center gap-2 text-xl mb-6">
