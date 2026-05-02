@@ -15,6 +15,7 @@ import {
 import { useEffect, useState, useCallback } from "react";
 import Pagination from "@/components/tables/Pagination";
 import { LIMIT_ITEM_TABLE } from "../../../../../../constant";
+import CustomDateRangePicker from "@/components/common/CustomDateRangePicker";
 
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
@@ -325,42 +326,16 @@ export default function UserTable() {
               </select>
             </div>
 
-            {/* Từ ngày */}
             <div>
-              <label className="block mb-2 text-sm font-medium">Từ ngày</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-                <input
-                  type="time"
-                  value={fromTime}
-                  onChange={(e) => setFromTime(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-              </div>
-            </div>
-
-            {/* Đến ngày */}
-            <div>
-              <label className="block mb-2 text-sm font-medium">Đến ngày</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-                <input
-                  type="time"
-                  value={toTime}
-                  onChange={(e) => setToTime(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-              </div>
+              <label className="block mb-2 text-sm font-medium">Thời gian</label>
+              <CustomDateRangePicker
+                onFilterChange={(sDate, eDate, sTime, eTime) => {
+                  setFromDate(sDate);
+                  setToDate(eDate);
+                  setFromTime(sTime);
+                  setToTime(eTime);
+                }}
+              />
             </div>
 
             {/* Limit */}

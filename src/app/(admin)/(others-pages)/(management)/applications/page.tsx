@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Pagination from "@/components/tables/Pagination";
 import Swal from "sweetalert2";
+import CustomDateRangePicker from "@/components/common/CustomDateRangePicker";
 
 import ApplicationTable, {
   AppSortColumn,
@@ -266,39 +267,15 @@ export default function HistorianApplicationPage() {
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium">Từ ngày</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-                <input
-                  type="time"
-                  value={fromTime}
-                  onChange={(e) => setFromTime(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block mb-2 text-sm font-medium">Đến ngày</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-                <input
-                  type="time"
-                  value={toTime}
-                  onChange={(e) => setToTime(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500"
-                />
-              </div>
+              <label className="block mb-2 text-sm font-medium">Thời gian</label>
+              <CustomDateRangePicker
+                onFilterChange={(sDate, eDate, sTime, eTime) => {
+                  setFromDate(sDate);
+                  setToDate(eDate);
+                  setFromTime(sTime);
+                  setToTime(eTime);
+                }}
+              />
             </div>
 
             <div>

@@ -45,7 +45,7 @@ export default function ProjectsTable({
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    return `Updated on ${date.toLocaleDateString("vi-VN", {
+    return `${date.toLocaleDateString("vi-VN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -92,11 +92,10 @@ export default function ProjectsTable({
     return (
       <button
         onClick={() => onSort(column)}
-        className={`w-20 text-sm font-medium text-left hover:text-blue-500 transition-colors ${
-          isActive
-            ? "text-blue-600 dark:text-blue-400"
-            : "text-gray-500 dark:text-gray-400"
-        }`}
+        className={`text-sm font-medium text-left hover:text-blue-500 transition-colors ${isActive
+          ? "text-blue-600 dark:text-blue-400"
+          : "text-gray-500 dark:text-gray-400"
+          }`}
       >
         {label} {isActive && (sortOrder === "asc" ? "↑" : "↓")}
       </button>
@@ -104,17 +103,31 @@ export default function ProjectsTable({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-[#0d1117] min-w-[700px]">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#161b22]">
-        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 w-40">
-        </span>
-        <div className="flex items-center gap-4 shrink-0">
-          <span className="text-sm text-gray-500 dark:text-gray-400 w-20">
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-[#0d1117]">
+      <div className="max-w-full overflow-x-auto custom-scrollbar">
+        <div className="min-w-[700px]">
+
+          <div className="flex items-center px-5 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#161b22]">
+
+        <div className="flex-1 pr-4 flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-400 dark:text-gray-500">
             Sắp xếp:
           </span>
-          <SortButton column="title" label="Tên" />
+          <SortButton column="title" label="Tên dự án" />
+        </div>
+
+        <div className="w-40 shrink-0">
           <SortButton column="created_at" label="Ngày tạo" />
+        </div>
+
+        <div className="w-40 shrink-0">
           <SortButton column="updated_at" label="Cập nhật" />
+        </div>
+
+        <div className="w-[120px] shrink-0 text-right">
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Thành viên
+          </span>
         </div>
       </div>
 
@@ -123,12 +136,13 @@ export default function ProjectsTable({
           data.map((item) => (
             <div
               key={item.id}
-              className="group flex flex-col p-5 md:flex-row md:items-center justify-between hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors"
+              className="group flex flex-col p-5 md:flex-row md:items-center gap-3 md:gap-0 hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors"
             >
-              <div className="flex-1 pr-4 max-w-full md:max-w-[75%]">
+
+              <div className="flex-1 pr-4 min-w-0">
                 <div
                   onClick={() => onViewDetails(item.id)}
-                  className="flex items-center gap-2 mb-2 cursor-pointer hover:underline"
+                  className="flex items-center gap-2 cursor-pointer hover:underline w-full"
                 >
                   <div className="w-6 h-6 shrink-0 flex items-center justify-center">
                     {item.user?.avatar_url ? (
@@ -136,20 +150,19 @@ export default function ProjectsTable({
                         <Image
                           src={item.user.avatar_url}
                           alt="avatar"
-                          fill 
-                          className="object-cover rounded-full" 
+                          fill
+                          className="object-cover rounded-full"
                         />
                       </div>
                     ) : (
                       <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600">
                         <span className="text-[10px] font-bold text-gray-500 dark:text-gray-300 leading-none">
-                          {item.user?.display_name?.charAt(0)?.toUpperCase() ||
-                            "U"}
+                          {item.user?.display_name?.charAt(0)?.toUpperCase() || "U"}
                         </span>
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center max-w-[250px]">
+                  <div className="flex items-center max-w-[200px]">
                     <span className="text-[14px] font-medium text-gray-700 dark:text-gray-300 truncate">
                       {item.user?.display_name || "Unknown"}
                     </span>
@@ -159,21 +172,25 @@ export default function ProjectsTable({
                     /
                   </span>
 
-                  <h3 className="text-[14px] font-semibold text-blue-600 dark:text-[#58a6ff] truncate max-w-[300px]">
+                  <h3 className="text-[14px] font-semibold text-blue-600 dark:text-[#58a6ff] truncate max-w-[250px]">
                     {item.title}
                   </h3>
 
-                  <div className="shrink-0 w-20 flex justify-start">
+                  <div className="shrink-0 flex justify-start">
                     {getStatusBadge(item.project_status)}
                   </div>
                 </div>
-
-                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-[#8b949e] h-5">
-                  <span>{formatDate(item.updated_at)}</span>
-                </div>
               </div>
 
-              <div className="flex items-center mt-4 md:mt-0 w-[120px] justify-end shrink-0">
+              <div className="md:w-40 shrink-0 text-xs text-gray-500 dark:text-[#8b949e]">
+                <span>{formatDate(item.created_at)}</span>
+              </div>
+
+              <div className="md:w-40 shrink-0 text-xs text-gray-500 dark:text-[#8b949e]">
+                <span>{formatDate(item.updated_at)}</span>
+              </div>
+
+              <div className="flex items-center md:w-[120px] md:justify-end shrink-0">
                 <div className="flex -space-x-2 overflow-hidden">
                   {item.members && item.members.length > 0 ? (
                     <>
@@ -217,6 +234,7 @@ export default function ProjectsTable({
                   )}
                 </div>
               </div>
+
             </div>
           ))
         ) : (
@@ -224,6 +242,8 @@ export default function ProjectsTable({
             Không tìm thấy dự án nào
           </div>
         )}
+      </div>
+        </div>
       </div>
     </div>
   );

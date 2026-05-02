@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import { LIMIT_ITEM_TABLE } from "../../../../../../constant";
 import { ProjectsResponse } from "@/interface/project";
 
+import CustomDateRangePicker from "@/components/common/CustomDateRangePicker";
+
 const formatDateTimeToISO = (
   dateStr: string,
   timeStr: string,
@@ -41,7 +43,6 @@ export default function ProjectsPage(_props: {
     LIMIT_ITEM_TABLE.toString(),
   );
 
-  // Filters state
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [userIdsFilter, setUserIdsFilter] = useState<string>("");
@@ -49,6 +50,8 @@ export default function ProjectsPage(_props: {
   const [fromTime, setFromTime] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [toTime, setToTime] = useState<string>("");
+
+  const [resetKey, setResetKey] = useState<number>(0);
 
   const [debouncedParams, setDebouncedParams] = useState({
     search: "",
@@ -77,6 +80,14 @@ export default function ProjectsPage(_props: {
     setToDate("");
     setToTime("");
     setPage(1);
+    setResetKey(prev => prev + 1);
+  };
+
+  const handleDateFilterChange = (startD: string, endD: string, startT: string, endT: string) => {
+    setFromDate(startD);
+    setToDate(endD);
+    setFromTime(startT);
+    setToTime(endT);
   };
 
   useEffect(() => {
@@ -122,7 +133,7 @@ export default function ProjectsPage(_props: {
       if (createdFrom) payload.created_from = createdFrom;
       const createdTo = formatDateTimeToISO(debouncedParams.toDate, debouncedParams.toTime, true);
       if (createdTo) payload.created_to = createdTo;
-      
+
       const response = await getProjects(payload);
 
       if (response?.status) {
@@ -174,23 +185,38 @@ export default function ProjectsPage(_props: {
           }
         >
           <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <input type="text" placeholder="Tên dự án, ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-gray-900 border rounded-lg cursor-pointer outline-none focus:border-brand-500">
-              <option value="">Tất cả trạng thái</option>
-              <option value="PUBLIC">PUBLIC</option>
-              <option value="PRIVATE">PRIVATE</option>
-              <option value="ARCHIVE">ARCHIVE</option>
-            </select>
-            <input type="text" placeholder="IDs người dùng (cách nhau bởi dấu phẩy)" value={userIdsFilter} onChange={(e) => setUserIdsFilter(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
-            <div className="flex gap-2">
-              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
-              <input type="time" value={fromTime} onChange={(e) => setFromTime(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
+            <div>
+              <label className="block mb-2 text-sm font-medium">Tìm kiếm</label>
+              <input type="text" placeholder="Tên dự án, ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
             </div>
-            <div className="flex gap-2">
-              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
-              <input type="time" value={toTime} onChange={(e) => setToTime(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
+
+            <div>
+              <label className="block mb-2 text-sm font-medium">Trạng thái</label>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-gray-900 border rounded-lg cursor-pointer outline-none focus:border-brand-500">
+                <option value="">Tất cả trạng thái</option>
+                <option value="PUBLIC">PUBLIC</option>
+                <option value="PRIVATE">PRIVATE</option>
+                <option value="ARCHIVE">ARCHIVE</option>
+              </select>
             </div>
-            <input type="number" value={limitInput} onChange={(e) => setLimitInput(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
+
+            <div>
+              <label className="block mb-2 text-sm font-medium">ID người dùng</label>
+              <input type="text" placeholder="IDs (cách nhau bởi dấu phẩy)" value={userIdsFilter} onChange={(e) => setUserIdsFilter(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium">Thời gian</label>
+              <CustomDateRangePicker
+                key={resetKey}
+                onFilterChange={handleDateFilterChange}
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium">Hiển thị (Limit)</label>
+              <input type="number" value={limitInput} onChange={(e) => setLimitInput(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:border-brand-500" />
+            </div>
           </div>
         </ComponentCard>
 
@@ -209,7 +235,6 @@ export default function ProjectsPage(_props: {
               onSort={handleSort}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              
               onViewDetails={handleViewDetails}
             />
           </div>
@@ -231,4 +256,4 @@ export default function ProjectsPage(_props: {
       </div>
     </div>
   );
-}
+} 
