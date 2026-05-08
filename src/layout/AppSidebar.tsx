@@ -71,6 +71,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
       { name: "Hồ Sơ Nhà Sử Học", path: "/applications", pro: false, roles: ["ADMIN", "MOD"] },
       { name: "Tệp Đăng Tải", path: "/assets", pro: false, roles: ["ADMIN", "MOD"] },
       { name: "Dự Án", path: "/project", pro: false, roles: ["ADMIN", "MOD"] },
+      { name: "Duyệt Nội Dung", path: "/submissions", pro: false, roles: ["ADMIN", "MOD"] },
     ],
   },
   {
@@ -123,7 +124,6 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
 
-  // Lấy data gốc từ Redux (không bị render lại vô cớ)
   const rolesData = useSelector((state: RootState) => state.user.data?.roles);
   
   const userRoles = useMemo(() => {
