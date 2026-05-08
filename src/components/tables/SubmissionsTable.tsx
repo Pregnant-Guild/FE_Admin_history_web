@@ -247,14 +247,14 @@ export default function SubmissionsTable({
 
                   <div className="flex-1 min-w-[150px] pr-4 flex items-center">
                     <div
-                      onClick={() => onViewDetails(item.id)}
-                      className="flex flex-col cursor-pointer hover:underline min-w-0"
+                      
+                      className="flex flex-col  min-w-0"
                     >
-                      <h3 className="text-[14px] font-semibold text-blue-600 dark:text-[#58a6ff] truncate">
+                      <h3 onClick={() => onViewDetails(item.id)} className="cursor-pointer hover:underline text-[14px] font-semibold text-blue-600 dark:text-[#58a6ff] truncate">
                         {item.project_title}
                       </h3>
                       <span className="text-[12px] text-gray-400 dark:text-gray-500 truncate mt-0.5">
-                        {item.id.split("-")[0]}
+                        {item.id}
                       </span>
                     </div>
                   </div>
