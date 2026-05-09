@@ -275,6 +275,7 @@ const AppSidebar: React.FC = () => {
             alt="Logo" 
             width={isExpanded || isHovered || isMobileOpen ? 80 : 32} 
             height={isExpanded || isHovered || isMobileOpen ? 50 : 32} 
+            style={{ height: 'auto' }}
           />
         </Link>
       </div>

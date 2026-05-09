@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} dark:bg-gray-900`}>
+      <body className={`${inter.className} dark:bg-gray-900`} suppressHydrationWarning>
         <StoreProvider>
            <ThemeProvider>
             <SidebarProvider>{children} <Toaster closeButton richColors position="top-right" /> </SidebarProvider>

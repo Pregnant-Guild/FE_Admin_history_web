@@ -1,170 +1,168 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
-import flatpickr from "flatpickr";
-import ChartTab from "../common/ChartTab";
-import { CalenderIcon } from "../../icons";
+import { getStatistics } from "@/service/statisticsService";
+import { StatisticResponse } from "@/interface/statistics";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
+const METRICS = [
+  { key: "users", name: "Người dùng" },
+  { key: "projects", name: "Dự án" },
+  { key: "commits", name: "Bản lưu" },
+  { key: "submissions", name: "Duyệt tin" },
+  { key: "medias", name: "Tệp đa phương tiện" },
+  { key: "wikis", name: "Bài viết Wiki" },
+  { key: "entities", name: "Thực thể" },
+  { key: "geometries", name: "Dữ liệu không gian" },
+];
+
 export default function StatisticsChart() {
-  const datePickerRef = useRef<HTMLInputElement>(null);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [chartData, setChartData] = useState<StatisticResponse[]>([]);
+  const [selectedMetricKey, setSelectedMetricKey] = useState<string>("users");
+  const [loading, setLoading] = useState(true);
+
+  const fetchChartData = async (start: string, end: string) => {
+    if (!start || !end) return;
+    setLoading(true);
+    try {
+      const response = await getStatistics({ start_date: start, end_date: end });
+      if (response?.data) {
+        setChartData(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch chart data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!datePickerRef.current) return;
-
     const today = new Date();
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(today.getDate() - 6);
 
-    const fp = flatpickr(datePickerRef.current, {
-      mode: "range",
-      static: true,
-      monthSelectorType: "static",
-      dateFormat: "M d",
-      defaultDate: [sevenDaysAgo, today],
-      clickOpens: true,
-      prevArrow:
-        '<svg class="stroke-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 15L7.5 10L12.5 5" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      nextArrow:
-        '<svg class="stroke-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 15L12.5 10L7.5 5" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    });
+    const todayStr = today.toISOString().split('T')[0];
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
-    return () => {
-      if (!Array.isArray(fp)) {
-        fp.destroy();
-      }
-    };
+    setStartDate(sevenDaysAgoStr);
+    setEndDate(todayStr);
+
+    fetchChartData(sevenDaysAgoStr, todayStr);
   }, []);
 
-  const options: ApexOptions = {
-    legend: {
-      show: false, // Hide legend
-      position: "top",
-      horizontalAlign: "left",
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setStartDate(val);
+    fetchChartData(val, endDate);
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEndDate(val);
+    fetchChartData(startDate, val);
+  };
+
+  const categories = chartData.map(item => {
+    const date = new Date(item.date);
+    return `${date.getDate()}/${date.getMonth() + 1}`;
+  });
+
+  const series = [
+    {
+      name: "Tổng cộng",
+      data: chartData.map(item => item[`total_${selectedMetricKey}` as keyof StatisticResponse] as number || 0),
     },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
+    {
+      name: "Mới",
+      data: chartData.map(item => item[`new_${selectedMetricKey}` as keyof StatisticResponse] as number || 0),
+    }
+  ];
+
+  const options: ApexOptions = {
+    legend: { show: true, position: "top" },
+    colors: ["#465FFF", "#9CB9FF"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,
-      type: "line", // Set the chart type to 'line'
-      toolbar: {
-        show: false, // Hide chart toolbar
-      },
+      type: "area",
+      toolbar: { show: false },
     },
-    stroke: {
-      curve: "straight", // Define the line style (straight, smooth, or step)
-      width: [2, 2], // Line width for each dataset
-    },
-
+    stroke: { curve: "smooth", width: [2, 2] },
     fill: {
       type: "gradient",
-      gradient: {
-        opacityFrom: 0.55,
-        opacityTo: 0,
-      },
-    },
-    markers: {
-      size: 0, // Size of the marker points
-      strokeColors: "#fff", // Marker border color
-      strokeWidth: 2,
-      hover: {
-        size: 6, // Marker size on hover
-      },
+      gradient: { opacityFrom: 0.55, opacityTo: 0 },
     },
     grid: {
-      xaxis: {
-        lines: {
-          show: false, // Hide grid lines on x-axis
-        },
-      },
-      yaxis: {
-        lines: {
-          show: true, // Show grid lines on y-axis
-        },
-      },
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
     },
-    dataLabels: {
-      enabled: false, // Disable data labels
-    },
+    dataLabels: { enabled: false },
     tooltip: {
-      enabled: true, // Enable tooltip
-      x: {
-        format: "dd MMM yyyy", // Format for x-axis tooltip
-      },
+      enabled: true,
+      x: { format: "dd MMM" },
     },
     xaxis: {
-      type: "category", // Category-based x-axis
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
-      axisBorder: {
-        show: false, // Hide x-axis border
-      },
-      axisTicks: {
-        show: false, // Hide x-axis ticks
-      },
-      tooltip: {
-        enabled: false, // Disable tooltip for x-axis points
-      },
+      type: "category",
+      categories: categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
     },
     yaxis: {
       labels: {
         style: {
-          fontSize: "12px", // Adjust font size for y-axis labels
-          colors: ["#6B7280"], // Color of the labels
-        },
-      },
-      title: {
-        text: "", // Remove y-axis title
-        style: {
-          fontSize: "0px",
+          fontSize: "12px",
+          colors: ["#6B7280"],
         },
       },
     },
   };
 
-  const series = [
-    {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
-    },
-    {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
-    },
-  ];
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Statistics
+            Thống kê hệ thống
           </h3>
           <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you've set for each month
+            Dữ liệu thống kê theo thời gian
           </p>
         </div>
-        <div className="flex items-center gap-3 sm:justify-end">
-          <ChartTab />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          {/* Dropdown chọn Metric */}
+          <select
+            value={selectedMetricKey}
+            onChange={(e) => setSelectedMetricKey(e.target.value)}
+            className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-brand-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+          >
+            {METRICS.map((metric) => (
+              <option key={metric.key} value={metric.key}>
+                {metric.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Date Picker Start */}
           <div className="relative inline-flex items-center">
-            <CalenderIcon className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-3 lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2  text-gray-500 dark:text-gray-400 pointer-events-none z-10" />
             <input
-              ref={datePickerRef}
-              className="h-10 w-10 lg:w-40 lg:h-auto  lg:pl-10 lg:pr-3 lg:py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-transparent lg:text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:lg:text-gray-300 cursor-pointer"
-              placeholder="Select date range"
+              type="date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 cursor-pointer"
+            />
+          </div>
+
+          {/* Date Picker End */}
+          <div className="relative inline-flex items-center">
+            <input
+              type="date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 cursor-pointer"
             />
           </div>
         </div>
@@ -172,7 +170,11 @@ export default function StatisticsChart() {
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="min-w-[1000px] xl:min-w-full">
-          <Chart options={options} series={series} type="area" height={310} />
+          {loading ? (
+            <div className="flex items-center justify-center h-[310px]">Đang tải...</div>
+          ) : (
+            <Chart options={options} series={series} type="area" height={310} />
+          )}
         </div>
       </div>
     </div>

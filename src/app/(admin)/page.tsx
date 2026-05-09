@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
 import React from "react";
-import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
-import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
+import DailyNewChart from "@/components/ecommerce/DailyNewChart";
 import StatisticsChart from "@/components/ecommerce/StatisticsChart";
-import RecentOrders from "@/components/ecommerce/RecentOrders";
-import DemographicCard from "@/components/ecommerce/DemographicCard";
+import DetailedStatsTable from "@/components/ecommerce/DetailedStatsTable";
 
 export const metadata: Metadata = {
-  title:
-    "Admin Dashboard",
+  title: "Admin Dashboard",
   description: "This is Dashboard Home for History Web",
 };
 
@@ -18,24 +15,15 @@ export default function Ecommerce() {
     <div className="grid grid-cols-12 gap-4 md:gap-6">
       <div className="col-span-12 space-y-6 xl:col-span-7">
         <EcommerceMetrics />
-
-        <MonthlySalesChart />
+        <DailyNewChart />
       </div>
 
       <div className="col-span-12 xl:col-span-5">
-        <MonthlyTarget />
+        <DetailedStatsTable />
       </div>
 
       <div className="col-span-12">
         <StatisticsChart />
-      </div>
-
-      <div className="col-span-12 xl:col-span-5">
-        <DemographicCard />
-      </div>
-
-      <div className="col-span-12 xl:col-span-7">
-        <RecentOrders />
       </div>
     </div>
   );

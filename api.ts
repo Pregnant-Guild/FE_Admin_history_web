@@ -64,5 +64,9 @@ export const API = {
     UPDATE_STATUS: (id: number | string) => `${API_URL_ROOT}/submissions/${id}/status`,
     CREATE: `${API_URL_ROOT}/submissions`,
     DELETE: (id: string) => `${API_URL_ROOT}/submissions/${id}`,
+  },
+  Statistics: {
+    GET_ALL: `${API_URL_ROOT}/statistics`,
+    GET_BY_DATE: (date: string) => `${API_URL_ROOT}/statistics/${date}`,
   }
 }
