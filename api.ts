@@ -1,6 +1,8 @@
 export const API_URL_ROOT = process.env.NEXT_PUBLIC_API_URL_ROOT || "";
 export const URL_MEDIA = process.env.NEXT_PUBLIC_URL_MEDIA || "";
-export const HOME_URL = process.env.NEXT_PUBLIC_HOME_URL || "http://localhost:3000";
+export const HOME_URL =
+  process.env.NEXT_PUBLIC_HOME_URL ||
+  (typeof window !== "undefined" ? window.location.origin : "");
 export const API = {
   User : {
     CURRENT: `${API_URL_ROOT}/users/current`,

@@ -1,7 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-export const baseURL =
-  process.env.NEXT_PUBLIC_API_URL_ROOT || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3344";
+// Prefer same-origin requests. Next.js will proxy API paths via `next.config.ts` rewrites.
+export const baseURL = "/";
 
 export const api = axios.create({
   baseURL,
@@ -68,7 +68,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await axios.post(`${baseURL}/auth/refresh`, undefined, { withCredentials: true });
+        await axios.post("/auth/refresh", {}, { withCredentials: true });
 
         processQueue(null);
 
