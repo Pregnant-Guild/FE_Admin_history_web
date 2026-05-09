@@ -12,12 +12,12 @@ export const apiGetSubmissionDetail = async (id: string) => {
   return response?.data;
 };
 
-export const updateProject = async (id: string, payload: updateSubmissionPayload) => {
+export const updateSubmission = async (id: string, payload: updateSubmissionPayload) => {
   const response = await api.patch(API.Submission.UPDATE_STATUS(id), payload);
   return response?.data;
 };
 
-export const deleteProject = async (id: string) => {
+export const deleteSubmission = async (id: string) => {
   const response = await api.delete(API.Submission.DELETE(id));
   return response?.data;
 };

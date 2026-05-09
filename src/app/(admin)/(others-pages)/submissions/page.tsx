@@ -15,7 +15,7 @@ import {
   getSubmissionPayload,
   updateSubmissionPayload,
 } from "@/interface/submission";
-import { apiGetSubmission, updateProject } from "@/service/submisisonService";
+import { apiGetSubmission, updateSubmission } from "@/service/submisisonService";
 import { LIMIT_ITEM_TABLE } from "../../../../../constant";
 
 const formatDateTimeToISO = (
@@ -147,9 +147,9 @@ export default function Page() {
           : undefined,
         user_ids: debouncedParams.userIds
           ? debouncedParams.userIds
-              .split(",")
-              .map((id) => id.trim())
-              .filter(Boolean)
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean)
           : undefined,
       };
 
@@ -214,7 +214,7 @@ export default function Page() {
 
     setIsSubmitting(true);
     try {
-      const response = await updateProject(selectedItem.id, updatePayload);
+      const response = await updateSubmission(selectedItem.id, updatePayload);
 
       if (response?.status) {
         toast.success("Cập nhật thành công!");
@@ -411,11 +411,14 @@ export default function Page() {
                 </label>
                 <select
                   value={updatePayload.status}
-                  onChange={(e) =>
-                    setUpdatePayload({
-                      ...updatePayload,
-                      status: e.target.value,
+                  onChange={(e) => {
+                    setUpdatePayload((prev) => {
+                      return {
+                        ...prev,
+                        status: e.target.value,
+                      }
                     })
+                  }
                   }
                   className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                 >
@@ -430,11 +433,14 @@ export default function Page() {
                 </label>
                 <textarea
                   value={updatePayload.review_note}
-                  onChange={(e) =>
-                    setUpdatePayload({
-                      ...updatePayload,
-                      review_note: e.target.value,
+                  onChange={(e) => {
+                    setUpdatePayload((prev) => {
+                      return {
+                        ...prev,
+                        review_note: e.target.value,
+                      }
                     })
+                  }
                   }
                   placeholder="Nhập ghi chú phản hồi..."
                   rows={4}
