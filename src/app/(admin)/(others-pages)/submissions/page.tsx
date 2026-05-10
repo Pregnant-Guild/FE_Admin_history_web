@@ -422,6 +422,7 @@ export default function Page() {
                   }
                   className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                 >
+                  <option value="PENDING" disabled >PENDING</option>
                   <option value="APPROVED">APPROVED</option>
                   <option value="REJECTED">REJECTED</option>
                 </select>
