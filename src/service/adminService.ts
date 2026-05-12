@@ -1,6 +1,6 @@
 import api from "@/config/config";
 import { API } from "../../api";
-import { getUserDto } from "@/interface/admin";
+import { createUser, getUserDto, resetPassword } from "@/interface/admin";
 
 export const apiGetListUser = async (payload: getUserDto) => {
   const response = await api.get(API.Admin.GET_LIST_USERS, {
@@ -41,3 +41,13 @@ export const apiGetUserById = async (userId: string) => {
   const response = await api.get(API.Admin.GET_USER_BY_ID(userId)); 
   return response?.data;
 };
+
+export const apiResetPassword = async (userId: string,payload : resetPassword) => {
+  const response = await api.patch(API.Admin.RESET_PASSWORD(userId), payload); 
+  return response?.data;
+}
+
+export const apiCreateUser = async (payload: createUser) => {
+  const response = await api.post(API.Admin.CREATE_USER, payload); 
+  return response?.data;
+}

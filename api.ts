@@ -35,8 +35,9 @@ export const API = {
     RESTORE_USER: (Id: number | string) => `${API_URL_ROOT}/users/${Id}/restore`,
     GET_USER_MEDIA: (Id: number | string) => `${API_URL_ROOT}/users/${Id}/media`,
     GET_ALL_ROLE: `${API_URL_ROOT}/roles`,
-    UPDATE_APPLICATION_STATUS: (Id: number | string) => `${API_URL_ROOT}/historian/application/${Id}/status`
-    
+    UPDATE_APPLICATION_STATUS: (Id: number | string) => `${API_URL_ROOT}/historian/application/${Id}/status`,
+    RESET_PASSWORD: (Id: number | string) => `${API_URL_ROOT}/users/${Id}/password`,
+    CREATE_USER: `${API_URL_ROOT}/users`,
   },
   Historian:{
     CREATE_CV: `${API_URL_ROOT}/historian/application`,

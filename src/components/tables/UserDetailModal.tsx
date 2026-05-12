@@ -15,6 +15,7 @@ interface UserDetailModalProps {
   onChangeRole: (user: fullDataUser) => void;
   onDelete: (user: fullDataUser) => void;
   onRestore: (user: fullDataUser) => void;
+  onResetPassword: (user: fullDataUser) => void;
 }
 
 export default function UserDetailModal({
@@ -24,6 +25,7 @@ export default function UserDetailModal({
   onChangeRole,
   onDelete,
   onRestore,
+  onResetPassword,
 }: UserDetailModalProps) {
   const [mediaData, setMediaData] = useState<MediaDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,6 +98,12 @@ export default function UserDetailModal({
             Thao tác quản trị viên
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={() => onResetPassword(user)}
+              className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 transition-colors"
+            >
+              Đặt lại mật khẩu
+            </button>
             <button
               onClick={() => onChangeRole(user)}
               className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 dark:bg-purple-500/10 dark:text-purple-400 dark:hover:bg-purple-500/20 transition-colors"

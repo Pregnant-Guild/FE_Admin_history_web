@@ -5,6 +5,7 @@ import Button from "../ui/button/Button";
 import { fullDataUser } from "@/interface/admin";
 import { apiGetAllRole, apiChangeRole } from "@/service/adminService";
 import { toast } from "sonner";
+import { DEFAULT_ROLE_NAME } from "../../../constant";
 
 interface Role {
   id: string;
@@ -18,7 +19,6 @@ interface ChangeRoleModalProps {
   onSuccess: () => void;
 }
 
-const DEFAULT_ROLE_NAME = "USER";
 
 export default function ChangeRoleModal({ isOpen, onClose, user, onSuccess }: ChangeRoleModalProps) {
   const [roles, setRoles] = useState<Role[]>([]);
