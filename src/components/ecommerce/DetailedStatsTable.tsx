@@ -52,7 +52,7 @@ export default function DetailedStatsTable() {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3 md:p-6">
       <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
         Bảng Số Liệu Chi Tiết (Hôm nay vs Hôm qua)
       </h3>

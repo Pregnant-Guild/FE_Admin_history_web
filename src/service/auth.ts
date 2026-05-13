@@ -1,11 +1,11 @@
-import api from "@/config/config";
+import { api } from "@/config/config";
 import { API } from "../../api";
 
 export const apiCreateOTP = async (email: string) => {
   const token_type = 2;
-  const response = await api.post(API.Auth.CREATEOTP, { 
-    email, 
-    token_type 
+  const response = await api.post(API.Auth.CREATEOTP, {
+    email,
+    token_type
   });
   return response.data;
 };
@@ -13,7 +13,7 @@ export const apiCreateOTP = async (email: string) => {
 export const apiVerifyOTP = async (email: string, token: string) => {
   const body = { email, token, token_type: 2 };
   const response = await api.post(API.Auth.VERIFYOTP, body);
-  return response.data; 
+  return response.data;
 };
 
 export const apiSignUp = async (payload: any) => {

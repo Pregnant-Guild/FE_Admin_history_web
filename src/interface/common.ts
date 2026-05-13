@@ -1,8 +1,15 @@
-export interface CommonResponse<T = any> {
+export interface ErrorResponse {
+  failed_field: string;
+  tag: string;
+  value: string;
+  message: string;
+}
+
+export interface CommonResponse<T = unknown> {
   status: boolean;
   message: string;
   data: T;
-  errors?: any; // Or a more specific error type
+  errors?: ErrorResponse[]; // Or a more specific error type
 }
 
 export interface PaginatedResponse<T> {
@@ -15,7 +22,7 @@ export interface PaginatedResponse<T> {
     total_records: number;
     total_pages: number;
   };
-  errors?: any;
+  errors?: ErrorResponse[];
 }
 
 export interface CursorPaginatedResponse<T> {
@@ -25,5 +32,5 @@ export interface CursorPaginatedResponse<T> {
     items: T[];
     next_cursor_id?: string;
   };
-  errors?: any;
+  errors?: ErrorResponse[];
 }

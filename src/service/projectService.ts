@@ -1,4 +1,4 @@
-import api from "@/config/config";
+import { api } from "@/config/config";
 import { API } from "../../api";
 import { ProjectMemberPayload, ChangeOwnerPayload, CreateCommitPayload, GetProjectsParams, Project, RestoreCommitPayload, UpdateProjectPayload } from "@/interface/project";
 import { CommonResponse, CursorPaginatedResponse, PaginatedResponse } from "@/interface/common";

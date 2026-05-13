@@ -1,4 +1,4 @@
-import api from "@/config/config";
+import { api } from "@/config/config";
 import { API } from "../../api";
 import { payloadPresignedMedia } from "@/interface/media";
 import axios from "axios";
@@ -112,7 +112,7 @@ export const getMediaById = async (mediaId: number | string) => {
 export const deleteMedia = async (mediaIds: string[]) => {
   const response = await api.delete(API.Media.DELETE_MEDIA, {
     data: {
-      media_ids: mediaIds 
+      media_ids: mediaIds
     }
   });
   return response?.data;

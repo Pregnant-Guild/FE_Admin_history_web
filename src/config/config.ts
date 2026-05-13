@@ -1,65 +1,88 @@
-import axios from "axios"
-import { API_URL_ROOT } from "../../api"
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-const baseURL = API_URL_ROOT || "https://history-api.kain.id.vn"
+export const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3344";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL,
-  withCredentials: true
-})
+  withCredentials: true,
+});
 
-let isRefreshing = false
-let queue: any[] = []
-
-const processQueue = (error?: any) => {
-  queue.forEach((p) => {
-    if (error) p.reject(error)
-    else p.resolve()
-  })
-  queue = []
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
 }
+
+interface QueueItem {
+  resolve: () => void;
+  reject: (error: unknown) => void;
+}
+
+let isRefreshing = false;
+let queue: QueueItem[] = [];
+
+const processQueue = (error: unknown = null) => {
+  queue.forEach((p) => {
+    if (error) p.reject(error);
+    else p.resolve();
+  });
+  queue = [];
+};
+
+const skipRefreshUrls = [
+  "/auth/signin",
+  "/auth/signup",
+  "/auth/logout",
+  "/auth/refresh",
+  "/auth/forgot-password",
+  "/auth/token/create",
+  "/auth/token/verify",
+];
 
 api.interceptors.response.use(
   (res) => res,
-  async (err) => {
-    const originalRequest = err.config
+  async (err: AxiosError) => {
+    const originalRequest = err.config as CustomAxiosRequestConfig;
 
-    if (err.response?.status === 401 && !originalRequest._retry) {
+    const url = originalRequest?.url || "";
+
+    const shouldSkip = skipRefreshUrls?.some((path) =>
+      url?.includes(path)
+    );
+
+    if (
+      err.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !shouldSkip
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           queue.push({
             resolve: () => resolve(api(originalRequest)),
-            reject
-          })
-        })
+            reject: (queueErr) => reject(queueErr),
+          });
+        });
       }
 
-      originalRequest._retry = true
-      isRefreshing = true
+      originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        await axios.post(
-          `${baseURL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        )
+        await axios.post(`${baseURL}/auth/refresh`, {}, { withCredentials: true });
 
-        processQueue()
+        processQueue(null);
 
-        return api(originalRequest)
+        return api(originalRequest);
       } catch (refreshErr) {
-        processQueue(refreshErr)
+        processQueue(refreshErr);
 
-        window.location.href = "/signin"
+        window.location.href = "/auth/signin"
 
-        return Promise.reject(refreshErr)
+        return Promise.reject(refreshErr);
       } finally {
-        isRefreshing = false
+        isRefreshing = false;
       }
     }
 
-    return Promise.reject(err)
+    return Promise.reject(err);
   }
-)
-
-export default api
+);

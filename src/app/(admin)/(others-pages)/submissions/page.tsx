@@ -240,7 +240,6 @@ export default function Page() {
       } else {
         toast.error("Lỗi hệ thống khi cập nhật");
       }
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }

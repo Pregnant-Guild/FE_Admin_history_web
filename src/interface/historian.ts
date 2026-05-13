@@ -19,7 +19,7 @@ export interface ApplicationDto {
   reviewed_at: string | null;
   created_at: string;
   updated_at?: string;
-  media: any[];
+  media: MediaDto[];
   user: {
     display_name?: string;
     avatar_url?: string;

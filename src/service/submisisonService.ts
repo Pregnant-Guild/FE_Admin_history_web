@@ -1,4 +1,4 @@
-import api from "@/config/config";
+import { api } from "@/config/config";
 import { API } from "../../api";
 import { getSubmissionPayload, updateSubmissionPayload } from "@/interface/submission";
 

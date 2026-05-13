@@ -1,4 +1,4 @@
-import api from "@/config/config";
+import { api } from "@/config/config";
 import { API } from "../../api";
 import { getUserDto } from "@/interface/admin";
 
@@ -38,6 +38,6 @@ export const apiUpdateApplicationStatus = async (id: string, payload: any) => {
 };
 
 export const apiGetUserById = async (userId: string) => {
-  const response = await api.get(API.Admin.GET_USER_BY_ID(userId)); 
+  const response = await api.get(API.Admin.GET_USER_BY_ID(userId));
   return response?.data;
 };

@@ -1,4 +1,4 @@
-import api from "@/config/config";
+import { api } from "@/config/config";
 import { API } from "../../api";
 
 export const createHistorianCV = async (payload: any) => {
@@ -6,7 +6,7 @@ export const createHistorianCV = async (payload: any) => {
   return response?.data;
 };
 
-export const apiGetUserApplications = async (payload :any) => {
+export const apiGetUserApplications = async (payload: any) => {
   const response = await api.get(API.Historian.APPLICATION, { params: payload });
   return response?.data;
 };
