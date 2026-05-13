@@ -5,17 +5,20 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import BasicTableOne from "@/components/tables/BasicTableOne";
 import ChangeRoleModal from "@/components/tables/ChangeRoleModal";
 import UserDetailModal from "@/components/tables/UserDetailModal";
-import { responseUserTable, getUserDto, fullDataUser } from "@/interface/admin";
+import { responseUserTable, getUserDto, fullDataUser, createUser } from "@/interface/admin";
 import {
   apiDeleteUser,
   apiGetAllRole,
   apiGetListUser,
   apiRestoreUser,
+  apiCreateUser,
+  apiResetPassword,
 } from "@/service/adminService";
 import { useEffect, useState, useCallback } from "react";
 import Pagination from "@/components/tables/Pagination";
-import { LIMIT_ITEM_TABLE } from "../../../../../../constant";
+import { LIMIT_ITEM_TABLE, IS_SEND_EMAIL } from "../../../../../../constant";
 import CustomDateRangePicker from "@/components/common/CustomDateRangePicker";
+import Input from "@/components/form/input/InputField";
 
 export type SortColumn = "created_at" | "updated_at" | "display_name" | "email";
 
@@ -51,6 +54,21 @@ export default function UserTable() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roleUser, setRoleUser] = useState<fullDataUser | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createPayload, setCreatePayload] = useState<createUser>({
+    email: "",
+    display_name: "",
+    password: "",
+    role_ids: [],
+  });
+
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetUser, setResetUser] = useState<fullDataUser | null>(null);
+  const [resetPayload, setResetPayload] = useState({
+    new_password: "",
+    is_send_email: IS_SEND_EMAIL,
+  });
 
   const [debouncedParams, setDebouncedParams] = useState({
     search: "",
@@ -192,6 +210,74 @@ export default function UserTable() {
   const handleOpenDetail = (user: fullDataUser) => {
     setSelectedUser(user);
     setIsModalOpen(true);
+  };
+
+  const generateRandomPassword = () => {
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const specials = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+    let password = "";
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += specials[Math.floor(Math.random() * specials.length)];
+    
+    const allChars = lowercase + uppercase + numbers + specials;
+    for (let i = 0; i < 5; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+    
+    return password.split('').sort(() => 0.5 - Math.random()).join('');
+  };
+
+  const handleOpenCreateModal = () => {
+    setCreatePayload({
+      email: "",
+      display_name: "",
+      password: generateRandomPassword(),
+      role_ids: [],
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateUser = async () => {
+    try {
+      const res = await apiCreateUser(createPayload as any);
+      if (res?.status) {
+        Swal.fire("Thành công", "Tạo tài khoản thành công.", "success");
+        setIsCreateModalOpen(false);
+        fetchUsers();
+      } else {
+        Swal.fire("Thất bại", res?.message || "Không thể tạo tài khoản.", "error");
+      }
+    } catch (err: any) {
+      Swal.fire("Lỗi!", err?.response?.data?.message || "Có lỗi xảy ra.", "error");
+    }
+  };
+
+  const handleOpenResetModal = (user: fullDataUser) => {
+    setResetUser(user);
+    setResetPayload({
+      new_password: generateRandomPassword(),
+      is_send_email: IS_SEND_EMAIL,
+    });
+    setIsResetModalOpen(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetUser) return;
+    try {
+      const res = await apiResetPassword(resetUser.id, resetPayload as any);
+      if (res?.status) {
+        Swal.fire("Thành công", "Đặt lại mật khẩu thành công.", "success");
+        setIsResetModalOpen(false);
+      } else {
+        Swal.fire("Thất bại", res?.message || "Không thể đặt lại mật khẩu.", "error");
+      }
+    } catch (err: any) {
+      Swal.fire("Lỗi!", err?.response?.data?.message || "Có lỗi xảy ra.", "error");
+    }
   };
 
   const handleOpenRoleModal = (user: fullDataUser) => {
@@ -353,7 +439,20 @@ export default function UserTable() {
           </div>
         </ComponentCard>
 
-        <ComponentCard title="Danh sách người dùng">
+        <ComponentCard 
+          title="Danh sách người dùng"
+          headerAction={
+            <button
+              onClick={handleOpenCreateModal}
+              className="flex items-center px-4 py-2 text-sm font-medium text-white transition-colors rounded-lg bg-brand-500 hover:bg-brand-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Tạo tài khoản
+            </button>
+          }
+        >
           <div className="relative min-h-[300px]">
             {loading && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 rounded-xl">
@@ -394,6 +493,10 @@ export default function UserTable() {
             onClose={() => setIsModalOpen(false)}
             user={selectedUser}
             onChangeRole={handleOpenRoleModal}
+            onResetPassword={(u) => {
+              handleOpenResetModal(u);
+              setIsModalOpen(false);
+            }}
             onDelete={(u) => {
               handleDelete(u);
               setIsModalOpen(false);
@@ -410,6 +513,123 @@ export default function UserTable() {
             user={roleUser}
             onSuccess={fetchUsers}
           />
+
+          {/* Modal Tạo Tài Khoản */}
+          {isCreateModalOpen && (
+            <div className="fixed inset-0 z-[99] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Tạo tài khoản mới</h3>
+                  <button onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tên hiển thị</label>
+                    <Input 
+                      type="text" 
+                      defaultValue={createPayload.display_name} 
+                      onChange={(e) => setCreatePayload({...createPayload, display_name: e.target.value})} 
+                      className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-brand-500" 
+                      placeholder="Nhập tên hiển thị..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                    <Input 
+                      type="email" 
+                      defaultValue={createPayload.email} 
+                      onChange={(e) => setCreatePayload({...createPayload, email: e.target.value})} 
+                      className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-brand-500" 
+                      placeholder="Nhập email..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vai trò</label>
+                    <div className="flex flex-wrap gap-4 mt-2 mb-2">
+                      {roles.map((role) => (
+                        <label key={role.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={createPayload.role_ids.includes(role.id)}
+                            onChange={(e) => {
+                              const newRoleIds = e.target.checked
+                                ? [...createPayload.role_ids, role.id]
+                                : createPayload.role_ids.filter((id) => id !== role.id);
+                              setCreatePayload({ ...createPayload, role_ids: newRoleIds });
+                            }}
+                            className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{role.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mật khẩu</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={createPayload.password} 
+                        onChange={(e) => setCreatePayload({...createPayload, password: e.target.value})} 
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-brand-500" 
+                      />
+                      <button 
+                        onClick={() => setCreatePayload({...createPayload, password: generateRandomPassword()})} 
+                        className="px-3 py-2 text-sm bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 whitespace-nowrap"
+                      >
+                        Sinh ngẫu nhiên
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3">
+                  <button onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors">Hủy</button>
+                  <button onClick={handleCreateUser} className="flex items-center px-5 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 focus:ring-4 focus:ring-brand-500/20 transition-all">Tạo tài khoản</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isResetModalOpen && (
+            <div className="fixed inset-0 z-[99] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Reset mật khẩu</h3>
+                  <button onClick={() => setIsResetModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mật khẩu mới</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={resetPayload.new_password} 
+                        onChange={(e) => setResetPayload({...resetPayload, new_password: e.target.value})} 
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-brand-500" 
+                      />
+                      <button onClick={() => setResetPayload({...resetPayload, new_password: generateRandomPassword()})} className="px-3 py-2 text-sm bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 whitespace-nowrap">Sinh ngẫu nhiên</button>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <input type="checkbox" id="sendEmailReset" checked={resetPayload.is_send_email} onChange={(e) => setResetPayload({...resetPayload, is_send_email: e.target.checked})} className="w-4 h-4 text-brand-500 border-gray-300 rounded focus:ring-brand-500 cursor-pointer" />
+                    <label htmlFor="sendEmailReset" className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Gửi email thông báo mật khẩu mới</label>
+                  </div>
+                </div>
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3">
+                  <button onClick={() => setIsResetModalOpen(false)} className="px-5 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors">Hủy</button>
+                  <button onClick={handleResetPassword} className="flex items-center px-5 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 focus:ring-4 focus:ring-brand-500/20 transition-all">Lưu mật khẩu</button>
+                </div>
+              </div>
+            </div>
+          )}
         </ComponentCard>
       </div>
     </div>

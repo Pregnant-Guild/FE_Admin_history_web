@@ -1,3 +1,4 @@
+import { IS_SEND_EMAIL } from './../../constant';
 import { Profile, UserRole } from "@/interface/user";
 
 export interface getUserDto {
@@ -39,4 +40,16 @@ export interface responseUserTable {
     total_records: number;
     total_pages: number;
   };
+}
+
+export interface resetPassword {
+  is_send_email: boolean;
+  new_password: string;
+}
+
+export interface createUser {
+  email: string;
+  display_name: string;
+  password: string;
+  role_ids: string[];
 }
