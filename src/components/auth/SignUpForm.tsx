@@ -72,7 +72,7 @@ export default function SignUpForm() {
       setLoading(true);
       await apiCreateOTP(formData.email);
       setStep(2);
-    } catch (error) {
+    } catch {
       setErrorMsg("Lỗi khi tạo OTP. Vui lòng thử lại.");
       toast.error("Tạo OTP thất bại. Vui lòng kiểm tra lại thông tin.");
     } finally {
@@ -106,7 +106,7 @@ export default function SignUpForm() {
         token_id: tokenId,
       };
 
-      const signupRes = await apiSignUp(signupPayload);
+      await apiSignUp(signupPayload);
 
       await Swal.fire({
         title: "Tạo tài khoản thành công!. Quay về trang đăng nhập để tiếp tục",
@@ -131,7 +131,7 @@ export default function SignUpForm() {
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
         <Link
-          href="/signin"
+          href="/auth/signin"
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
           <ChevronLeftIcon />
@@ -332,7 +332,7 @@ export default function SignUpForm() {
                 <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                   Already have an account?{" "}
                   <Link
-                    href="/signin"
+                    href="/auth/signin"
                     className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
                     Sign In

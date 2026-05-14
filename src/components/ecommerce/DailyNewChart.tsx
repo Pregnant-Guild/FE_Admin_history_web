@@ -31,7 +31,6 @@ export default function MonthlyNewChart() {
     try {
       const response = await getStatistics({ start_date: start, end_date: end });
       if (response?.data) {
-        // Tổng hợp theo tháng
         const monthsMap: { [key: string]: number } = {};
         
         response.data.forEach(item => {
@@ -56,8 +55,7 @@ export default function MonthlyNewChart() {
 
         setChartData(aggregated);
       }
-    } catch (error) {
-      console.error("Failed to fetch chart data", error);
+    } catch {
     } finally {
       setLoading(false);
     }

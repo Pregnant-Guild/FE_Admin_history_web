@@ -71,7 +71,6 @@ export default function SignInForm() {
         toast.success("Đăng nhập thành công!");
         const data = await apiGetCurrentUser();
 
-        // console.log("Current User Data:", data);
         if (data?.data) {
           dispatch(setUserData(data.data));
           router.push("/");
@@ -79,7 +78,7 @@ export default function SignInForm() {
       } else {
         toast.error("Email hoặc mật khẩu không đúng.");
       }
-    } catch (error) {
+    } catch {
       setErrorMsg("Lỗi khi đăng nhập. Vui lòng thử lại.");
       toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     } finally {
@@ -206,7 +205,7 @@ export default function SignInForm() {
                     </span>
                   </div>
                   <Link
-                    href="/reset-password"
+                    href="/auth/reset-password"
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
                     Forgot password?
@@ -256,7 +255,7 @@ export default function SignInForm() {
               <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                 Don&apos;t have an account? {""}
                 <Link
-                  href="/signup"
+                  href="/auth/signup"
                   className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                 >
                   Sign Up

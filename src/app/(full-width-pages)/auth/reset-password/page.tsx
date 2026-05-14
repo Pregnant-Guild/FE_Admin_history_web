@@ -100,7 +100,7 @@ export default function ResetPasswordForm() {
     <div className="flex flex-col flex-1 w-full lg:w-1/2 overflow-y-auto no-scrollbar">
       <div className="w-full max-w-md mx-auto mb-5 sm:pt-10">
         <Link
-          href="/signin"
+          href="/auth/signin"
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
           <ChevronLeftIcon />
