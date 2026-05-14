@@ -34,7 +34,7 @@ export default function AdminLayout({
       try {
         setIsLoading(true);
         const res = await apiGetCurrentUser();
-        const userData: UserData = res;
+        const userData: UserData = res.data;
 
         const allowedRoles = ["ADMIN", "MOD", "HISTORIAN"];
 
