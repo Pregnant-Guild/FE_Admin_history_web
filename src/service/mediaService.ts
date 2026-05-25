@@ -52,20 +52,18 @@ export const uploadFileToS3 = async (
   file: File,
   presigned: PreSignedResponse,
 ) => {
-  const res = await axios.put(presigned.upload_url, file, {
+  await axios.put(presigned.upload_url, file, {
     headers: {
       ...presigned.signed_headers,
       "Content-Type": file.type,
     },
   });
-  // console.log("Response from S3 upload:", res);
 };
 
 export const confirmUpload = async (token_id: string) => {
   const res = await api.post("/media/presigned/complete", {
     token_id,
   });
-  // console.log("Response from confirm upload:", res);
   return res.data;
 };
 

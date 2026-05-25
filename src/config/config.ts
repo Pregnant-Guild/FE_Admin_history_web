@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-export const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3344";
+export const baseURL =
+  process.env.NEXT_PUBLIC_API_URL_ROOT || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3344";
 
 export const api = axios.create({
   baseURL,
