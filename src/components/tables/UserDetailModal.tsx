@@ -4,6 +4,8 @@ import UserMetaCard from "@/components/user-profile/UserMetaCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import { fullDataUser } from "@/interface/admin";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { MediaDto } from "@/interface/media";
 import { apiGetUserMedia } from "@/service/adminService";
 import MediaCard from "@/components/user-profile/Media";
@@ -29,6 +31,9 @@ export default function UserDetailModal({
 }: UserDetailModalProps) {
   const [mediaData, setMediaData] = useState<MediaDto | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const currentUserRoles = useSelector((state: RootState) => state.user.data?.roles) || [];
+  const isMod = currentUserRoles.some((role: any) => role.name === "MOD");
 
   const formattedData = { data: user };
 
@@ -98,12 +103,14 @@ export default function UserDetailModal({
             Thao tác quản trị viên
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => onResetPassword(user)}
-              className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 transition-colors"
-            >
-              Đặt lại mật khẩu
-            </button>
+            {!isMod && (
+              <button
+                onClick={() => onResetPassword(user)}
+                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 transition-colors"
+              >
+                Đặt lại mật khẩu
+              </button>
+            )}
             <button
               onClick={() => onChangeRole(user)}
               className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 dark:bg-purple-500/10 dark:text-purple-400 dark:hover:bg-purple-500/20 transition-colors"
@@ -111,20 +118,22 @@ export default function UserDetailModal({
               Đổi vai trò
             </button>
             
-            {user.is_deleted ? (
-              <button
-                onClick={() => onRestore(user)}
-                className="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20 transition-colors"
-              >
-                Khôi phục
-              </button>
-            ) : (
-              <button
-                onClick={() => onDelete(user)}
-                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
-              >
-                Khóa / Xóa
-              </button>
+            {!isMod && (
+              user.is_deleted ? (
+                <button
+                  onClick={() => onRestore(user)}
+                  className="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20 transition-colors"
+                >
+                  Khôi phục
+                </button>
+              ) : (
+                <button
+                  onClick={() => onDelete(user)}
+                  className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
+                >
+                  Khóa / Xóa
+                </button>
+              )
             )}
           </div>
         </div>

@@ -147,12 +147,12 @@ export default function BasicTableOne({
                   </div>
                 </TableCell>
 
-                <TableCell
+                {/* <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
                   Trạng thái
-                </TableCell>
+                </TableCell> */}
 
                 <TableCell
                   isHeader
@@ -166,7 +166,7 @@ export default function BasicTableOne({
                   </div>
                 </TableCell>
 
-                <TableCell
+                {/* <TableCell
                   isHeader
                   className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                 >
@@ -176,7 +176,7 @@ export default function BasicTableOne({
                   >
                     Cập nhật <SortIcon column="updated_at" />
                   </div>
-                </TableCell>
+                </TableCell> */}
 
                 <TableCell
                   isHeader
@@ -243,7 +243,7 @@ export default function BasicTableOne({
                       </div>
                     </TableCell>
 
-                    <TableCell className="px-5 py-4 text-start">
+                    {/* <TableCell className="px-5 py-4 text-start">
                       <Badge
                         size="sm"
                         variant="light"
@@ -251,14 +251,14 @@ export default function BasicTableOne({
                       >
                         {user.is_deleted ? "Bị khóa" : "Hoạt động"}
                       </Badge>
-                    </TableCell>
+                    </TableCell> */}
 
                     <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
                       {formatDate(user.created_at)}
                     </TableCell>
-                    <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
+                    {/* <TableCell className="px-5 py-4 text-gray-600 text-theme-sm dark:text-gray-400">
                       {formatDate(user.updated_at)}
-                    </TableCell>
+                    </TableCell> */}
 
                     <TableCell className="px-5 py-4 text-center">
                       <button
@@ -273,7 +273,7 @@ export default function BasicTableOne({
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={5}
                     className="px-5 py-24 text-center text-gray-500 italic"
                   >
                     <div className="flex flex-col items-center justify-center gap-2">
