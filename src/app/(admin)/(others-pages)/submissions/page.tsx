@@ -197,7 +197,7 @@ export default function Page() {
   };
 
   const handleViewDetails = (id: string) => {
-    router.push(`/submissions/${id}`);
+    window.open(`/submissions/${id}`, "_blank");
   };
 
   const handleOpenActionModal = (item: SubmissionItem) => {

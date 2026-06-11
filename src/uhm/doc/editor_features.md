@@ -1,0 +1,333 @@
+# UHM Editor - tính năng hiện có
+
+Tài liệu này mô tả editor đang chạy tại `src/app/editor/[id]/page.tsx` và các panel liên quan trong `src/uhm/components/`.
+Mục tiêu của tài liệu là phản ánh đúng implementation hiện tại, không mô tả các tính năng chưa được nối dây.
+
+Docs liên quan:
+
+- `src/uhm/doc/editor_operations.md`: ma trận thao tác/undo/snapshot.
+- `src/uhm/doc/editor_snapshot_contract.md`: contract commit snapshot.
+- `src/uhm/doc/editor_manual_test_checklist.md`: checklist test tay.
+- `src/uhm/doc/editor_replay_actions.md`: catalog action replay.
+
+## 1. Cách mở editor
+
+- `GET /editor/[id]`: mở editor đầy đủ với map, panel trái và panel phải.
+
+## 2. Bố cục giao diện
+
+- Cột trái (`Editor.tsx`)
+  - `ProjectPanel`
+  - `ToolsPanel`
+  - `CommitPanel`
+  - `CommitHistoryPanel`
+  - `UndoListPanel`
+- Khu vực giữa
+  - `Map`
+  - `TimelineBar` khi không ở `replay`; trong `replay_preview` phụ thuộc action `timeline`
+- Cột phải (`BackgroundLayersPanel`)
+  - Search hợp nhất
+  - Geometry Binding
+  - Entities
+  - Wiki
+  - Entity ↔ Wiki
+  - Selected Geometry
+
+Hai cột hai bên đều resize được bằng drag handle.
+
+## 3. Editor modes
+
+`EditorMode` hiện có:
+
+- `idle`
+- `select`
+- `draw`
+- `add-point`
+- `add-line`
+- `add-path`
+- `add-circle`
+- `replay`
+- `replay_preview`
+
+Ý nghĩa thực tế:
+
+- `select`: chọn geometry, xóa geometry, mở vertex editing cho polygon/circle, vào replay.
+- `draw`: vẽ polygon.
+- `add-point`: tạo point.
+- `add-line`: vẽ `LineString`.
+- `add-path`: vẽ `LineString` có render arrow layer cho route.
+- `add-circle`: kéo chuột để tạo polygon hình tròn, có `circle_center` và `circle_radius`.
+- `replay`: chế độ tập trung vào một geometry và tập `target_geometry_ids`, có sidebar sửa stage/step/action, preview overlay và undo riêng cho session replay.
+- `replay_preview`: chạy preview từ replay đang edit; action điều khiển camera/timeline/wiki/narrative overlay và hidden geometry ids.
+
+## 4. Công cụ vẽ và phím điều khiển
+
+### Polygon (`draw`)
+
+- Click để thêm đỉnh.
+- `Shift` hoặc `Alt` khi click/move để snap vào geometry gần nhất.
+- `Enter` để hoàn tất polygon.
+- `Escape` để hủy.
+- `Backspace` để bỏ đỉnh cuối.
+
+Geometry mới mặc định có:
+
+- `type: "country"`
+- `geometry_preset: "polygon"`
+- `entity_ids: []`
+- `bound_with: null`
+
+### Point (`add-point`)
+
+- Click một lần để tạo point.
+- Geometry mới mặc định có `type: "city"` và `geometry_preset: "point"`.
+
+### Line (`add-line`)
+
+- Click để thêm đỉnh.
+- `Enter` để hoàn tất.
+- `Escape` để hủy.
+- `Backspace` để bỏ đỉnh cuối.
+
+Geometry mới mặc định có `type: "defense_line"` và `geometry_preset: "line"`.
+
+### Path (`add-path`)
+
+- Tương tự `add-line`, nhưng render preview và layer theo route/path.
+- Geometry mới mặc định có `type: "attack_route"` và `geometry_preset: "line"`.
+
+### Circle (`add-circle`)
+
+- `mousedown` để đặt tâm.
+- Kéo chuột để thay đổi bán kính.
+- `mouseup` để hoàn tất.
+- `Escape` để hủy.
+
+Geometry trả về vẫn là `Polygon`, nhưng có thêm:
+
+- `circle_center`
+- `circle_radius`
+
+Mặc định `type: "war"` và `geometry_preset: "circle-area"`.
+
+## 5. Chọn và sửa geometry
+
+### Selection
+
+- `Map` trả về danh sách `selectedFeatureIds`.
+- `SelectedGeometryPanel`, `ProjectEntityRefsPanel` và `GeometryBindingPanel` đều đọc từ selection này.
+- Multi-select có tồn tại ở level state, nhưng một số thao tác chỉ hợp lệ khi các geometry cùng shape.
+
+### Vertex editing (Chỉnh sửa đỉnh)
+
+Khi đang ở chế độ `select`, nhấp đúp vào geometry để mở chế độ chỉnh sửa chi tiết qua `editingEngine`:
+
+* **Kéo thả đỉnh (Move Vertex):** Kéo các handle (điểm tròn) để dịch chuyển vị trí đỉnh.
+* **Chỉnh sửa hình tròn (Circle Editing):** 
+  * Handle `0`: di chuyển tâm hình tròn.
+  * Handle `1`: thay đổi bán kính.
+* **Thêm đỉnh mới:** `Ctrl` (hoặc `Cmd`) + click vào một cạnh bất kỳ của Polygon/LineString để chèn thêm đỉnh mới.
+* **Vẽ tiếp / Bám dọc biên (Continue Draw / Tracing):**
+  * Nhấp chuột phải vào một đỉnh và chọn `"Vẽ tiếp về bên trái"` hoặc `"Vẽ tiếp về bên phải"`.
+  * Trong quá trình vẽ tiếp, nhấn giữ phím `T` để tự động bám dọc (trace) theo biên của hình học khác gần nhất.
+  * Hệ thống tự khóa snap vào đối tượng đang bám để tránh đứt gãy hình học, tự động khâu nối (`stitchRing`) và làm sạch đỉnh trùng bằng sai số sai biệt $10^{-9}$ để giữ nguyên nút kết nối.
+  * Nhấn `Backspace` để hoàn tác (undo) các đỉnh hoặc toàn bộ đoạn vừa bám (trace).
+  * Nhấn `Enter` để lưu đoạn vẽ tiếp, hoặc `Escape` để hủy.
+* **Xóa hàng loạt đỉnh (Range Delete):**
+  * Nhấn phím `Delete` (hoặc click nút Xóa đỉnh trên panel) để vào chế độ Xóa đỉnh (các handle đổi sang màu **Đỏ**).
+  * *Xóa đơn:* Nhấp chuột trái vào bất kỳ đỉnh nào để xóa đỉnh đó.
+  * *Xóa khoảng (Range Delete):* 
+    * Giữ phím `Shift` và click vào đỉnh đầu tiên (đổi sang màu **Xanh lá** làm điểm neo, các đỉnh khác đổi sang màu **Xanh dương** an toàn).
+    * Di chuyển chuột tới đỉnh thứ hai: Toàn bộ cung đường đi giữa hai điểm neo dự kiến xóa sẽ hiển thị màu **Đỏ**, các đỉnh không bị ảnh hưởng sẽ giữ màu **Xanh dương**.
+    * Đối với Polygon, mặc định cung đường ngắn nhất (trung điểm gần chuột nhất) sẽ được chọn. Người dùng có thể **nhấn giữ phím Alt** để cưỡng bức chọn cung ngược lại.
+    * Click vào đỉnh thứ hai (hoặc nhấn giữ Shift + click) để xác nhận xóa toàn bộ các đỉnh màu đỏ ở giữa.
+    * Nhấn `Escape` hoặc click chuột phải, hoặc click ra vùng trống ngoài bản đồ để hủy chọn khoảng xóa.
+  * Nhấn `Delete` lần nữa hoặc nhấn `Escape` (khi không chọn khoảng) để thoát chế độ Xóa đỉnh.
+* **Áp dụng & Hủy chỉnh sửa:** 
+  * Nhấn `Enter` để lưu toàn bộ thay đổi hình học.
+  * Nhấn `Escape` (khi không trong chế độ xóa/vẽ tiếp) để hủy bỏ mọi thay đổi và quay lại trạng thái cũ.
+
+### Xóa geometry
+
+- Hành động xóa toàn bộ một hình học được đi qua `onDeleteFeature`.
+- Undo có thể khôi phục lại geometry vừa xóa cùng các liên kết tương ứng.
+
+## 6. Metadata geometry
+
+`SelectedGeometryPanel` hiện cho phép sửa:
+
+- `type_key`
+- `time_start`
+- `time_end`
+
+`bound_with` không nằm trong form metadata; việc bind/unbind geometry hiện đi qua `GeometryBindingPanel`.
+
+Các ràng buộc đang có:
+
+- `time_start` và `time_end` phải parse được thành số hoặc để trống.
+- Nếu cả hai đều có giá trị thì `time_start <= time_end`.
+
+Khi apply, editor patch trực tiếp `feature.properties` của geometry đang chọn.
+
+## 7. Timeline
+
+`TimelineBar` hiện dùng dải năm cố định từ util timeline.
+
+- Slider + numeric input cùng điều khiển `timelineDraftYear`.
+- Có toggle `filterEnabled`.
+- Khi bật filter:
+  - mọi geometry chỉ hiện nếu năm hiện tại nằm trong `[time_start, time_end]`
+  - geometry mới tạo trong session cũng tuân theo filter này
+
+Timeline hiện là filter phía client, không fetch lại dữ liệu project theo năm.
+
+## 8. Search hợp nhất và import
+
+Panel phải có `UnifiedSearchBar` với 3 loại search:
+
+- `entity`
+  - tìm local + backend theo tên/mô tả
+  - nút `Add` sẽ thêm entity vào `snapshotEntityRows` dưới dạng `reference`
+- `wiki`
+  - tìm backend theo title
+  - nút `Add` sẽ thêm wiki vào `snapshotWikis` dưới dạng `reference`
+- `geo`
+  - tìm geometry theo tên entity
+  - nút `Import` sẽ import geometry vào draft hiện tại
+  - đồng thời thêm entity tương ứng vào `snapshotEntityRows` nếu chưa có
+  - import giữ nguyên timeline filter; geometry mới import có thể bị ẩn nếu ngoài năm hiện tại
+
+## 9. Entity và binding
+
+### Project entities
+
+`ProjectEntityRefsPanel` hỗ trợ:
+
+- tạo entity local (`source: "inline"`, `operation: "create"`)
+- sửa entity đã có trong snapshot
+- bind/unbind entity vào geometry đang chọn
+
+Editor không gọi API create entity riêng ở bước này. Entity mới chỉ sống trong snapshot cho tới khi commit project.
+
+### Geometry ↔ Entity
+
+Liên kết nhiều-nhiều được thể hiện bằng:
+
+- field UI trên feature: `entity_id`, `entity_ids`, `entity_name`, `entity_names`
+- payload snapshot: `geometry_entity[]`
+
+Panel `ProjectEntityRefsPanel` là nơi bind/unbind entity theo geometry đang chọn.
+
+### Geometry ↔ Geometry
+
+`GeometryBindingPanel` thao tác trên `feature.properties.bound_with` của geometry con.
+
+- Chọn một geometry làm gốc.
+- Bind/unbind với geometry khác trong project bằng cách set/clear `bound_with` của geometry con.
+- Có nút focus để zoom vào geometry trong list binding.
+- Có toggle `Filter`: map chỉ hiển thị geometry liên quan tới selection nếu filter bound_with đang bật.
+- Row geometry hiển thị chip trạng thái trong panel:
+  - `no entity` nếu geometry chưa bind entity.
+  - `no time` nếu thiếu cả `time_start` và `time_end`.
+  - `partial time` nếu chỉ có một trong hai mốc thời gian.
+  - `timeline` hoặc `out timeline` khi timeline filter đang bật.
+  - `hidden`, `bound`, `new` theo trạng thái UI tương ứng.
+- ID geometry không render trực tiếp trong row; ID chỉ nằm trong `title` tooltip của row/nút thao tác.
+- Geometry mồ côi không có style riêng trên map. Cảnh báo nằm ở panel và validation commit/submit.
+
+## 10. Wiki và entity-wiki
+
+### Wiki panel
+
+`WikiSidebarPanel` dùng `react-quill-new`.
+
+Các khả năng đang có:
+
+- tạo wiki local
+- sửa title/slug/doc
+- import HTML file
+- export nội dung hiện tại theo định dạng suy ra từ `doc`
+- lưu wiki vào `snapshotWikis`
+
+Storage thực tế của `doc`:
+
+- format mới: HTML string
+- plaintext fallback
+
+### Internal wiki link
+
+Toolbar `link` mở modal custom:
+
+- tìm wiki local theo title/slug
+- tìm wiki global từ server
+- chèn link bằng `slug`, không bắt buộc scheme URL
+- có thể tạo `__missing__` link để đánh dấu liên kết chưa map được
+
+### Entity ↔ Wiki
+
+`EntityWikiBindingsPanel` quản lý `snapshotEntityWikiLinks`.
+
+- link mới dùng `operation: "binding"`
+- unlink bằng cách remove row khỏi editor state
+- khi build snapshot, editor tự sinh delta `binding` hoặc `delete` so với baseline
+
+## 11. Commit, submit và restore
+
+### Pending change count
+
+Số trong nút `Commit` không chỉ là geometry diff. Nó gồm:
+
+- `editor.changeCount`
+- `+1` nếu danh sách wiki dirty
+- `+1` nếu danh sách entity dirty
+- `+1` nếu danh sách entity-wiki dirty
+- `+1` nếu replay script dirty
+
+### Commit
+
+`commitSection()`:
+
+- build snapshot từ `mainDraft` + `snapshotEntityRows` + `snapshotWikis` + `snapshotEntityWikiLinks` + `effectiveReplays`
+- chặn commit nếu không có thay đổi, còn orphan geometry, hoặc payload vượt guardrail kích thước
+- gửi `snapshot_json` lên API tạo commit
+- nếu thành công:
+  - reset baseline sang snapshot vừa commit
+  - clear undo stack
+  - clear geometry changes
+
+### Submit
+
+- chỉ submit được khi project có `head_commit_id`
+- không submit nếu còn thay đổi chưa commit
+- không submit nếu còn orphan geometry
+
+### Restore
+
+`CommitHistoryPanel` có nút `Restore`, nhưng restore hiện là:
+
+- chỉ chạy khi không còn pending changes
+- load snapshot từ commit cũ vào FE
+- không đổi head commit trên backend
+
+Đây là FE-only restore để tiếp tục chỉnh sửa từ snapshot cũ.
+
+## 12. Pending submission lock
+
+Khi `openSectionEditor()` thấy project có submission `PENDING`, editor bị chặn mở.
+
+UI hiện tại:
+
+- hiển thị màn hình lock
+- cho phép xóa pending submission để unlock
+
+Luồng này bám sát rule backend mới, không phải readonly mode giả lập ở FE.
+
+## 13. Những thứ doc cũ từng nhắc nhưng code hiện chưa có
+
+Các mục sau không nên xem là tính năng hiện hành của editor:
+
+- autosave toàn bộ draft editor vào `localStorage`
+- restore head commit trên backend từ UI editor
+- import/export wiki JSON chuyên biệt như một workflow riêng
+- bộ shortcut toàn cục kiểu `Ctrl+S`, `Ctrl+Z`, `Ctrl+Y`
+- workflow duyệt `Approved/Rejected` được render đầy đủ trong editor page

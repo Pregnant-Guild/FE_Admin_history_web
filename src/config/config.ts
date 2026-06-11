@@ -1,26 +1,34 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosResponse } from "axios";
+import { API_URL_ROOT } from "../../api";
+import {
+  clearStoredTokens,
+  extractTokensFromResponsePayload,
+  getAccessToken,
+  setStoredTokens,
+} from "@/auth/tokenStore";
 
-// Prefer same-origin requests. Next.js will proxy API paths via `next.config.ts` rewrites.
-export const baseURL = "/";
+export const baseURL = API_URL_ROOT;
 
 export const api = axios.create({
+  baseURL,
+  // Support both cookie-based auth (httpOnly) and Bearer JWT.
+  withCredentials: true,
+});
+
+// Dedicated instance for refresh to avoid interceptor loops and handle baseURL correctly.
+const refreshApi = axios.create({
   baseURL,
   withCredentials: true,
 });
 
-interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean;
-}
-
-interface QueueItem {
-  resolve: () => void;
-  reject: (error: unknown) => void;
-}
-
 let isRefreshing = false;
-let queue: QueueItem[] = [];
+let queue: any[] = [];
 
-const processQueue = (error: unknown = null) => {
+function shouldRedirectToSigninOnRefreshFailure(status?: number): boolean {
+  return status === 401 || status === 404;
+}
+
+const processQueue = (error?: any) => {
   queue.forEach((p) => {
     if (error) p.reject(error);
     else p.resolve();
@@ -28,62 +36,120 @@ const processQueue = (error: unknown = null) => {
   queue = [];
 };
 
-const skipRefreshUrls = [
-  "/auth/signin",
-  "/auth/signup",
-  "/auth/logout",
-  "/auth/refresh",
-  "/auth/forgot-password",
-  "/auth/token/create",
-  "/auth/token/verify",
-];
+api.interceptors.request.use((config: any) => {
+  if (config.skipAuth) return config;
+
+  const token = config.authToken || getAccessToken();
+  if (token) {
+    const headers: any = config.headers || {};
+    // If it's a retry after refresh, we MUST update the Authorization header with the fresh token.
+    // Otherwise, we only set it if not already present.
+    const hasAuth = !!(headers.Authorization || headers.authorization || (typeof headers.get === "function" && headers.get("Authorization")));
+    
+    if (config._retry || !hasAuth) {
+      if (typeof headers.set === "function") headers.set("Authorization", `Bearer ${token}`);
+      else headers.Authorization = `Bearer ${token}`;
+    }
+    config.headers = headers;
+  }
+  return config;
+});
+
+function isAuthTokenExpiredMessage(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) return false;
+  // Be specific: don't match general "unauthorized" or "access denied" which could be 403.
+  // Match only messages clearly indicating token expiration or invalidity.
+  return (
+    normalized.includes("invalid or expired jwt") ||
+    normalized.includes("jwt expired") ||
+    normalized.includes("token expired") ||
+    normalized.includes("invalid token") ||
+    normalized.includes("expired token") ||
+    normalized.includes("token is invalid") ||
+    normalized.includes("not authenticated")
+  );
+}
 
 api.interceptors.response.use(
-  (res) => res,
-  async (err: AxiosError) => {
-    const originalRequest = err.config as CustomAxiosRequestConfig;
+  async (res: AxiosResponse): Promise<AxiosResponse> => {
+    // Opportunistically persist tokens from signin/refresh responses.
+    const tokens = extractTokensFromResponsePayload(res?.data);
+    if (tokens) setStoredTokens(tokens);
 
-    const url = originalRequest?.url || "";
-
-    const shouldSkip = skipRefreshUrls?.some((path) =>
-      url?.includes(path)
-    );
+    // Handle backends that return 200 OK with status:false + expired token message.
+    const data = res.data;
+    const originalRequest = res.config as any;
+    const url = String(originalRequest?.url || "");
 
     if (
-      err.response?.status === 401 &&
-      originalRequest &&
+      data &&
+      data.status === false &&
+      isAuthTokenExpiredMessage(data.message || "") &&
       !originalRequest._retry &&
-      !shouldSkip
+      !originalRequest.skipRefresh &&
+      !url.includes("/auth/")
     ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          queue.push({
-            resolve: () => resolve(api(originalRequest)),
-            reject: (queueErr) => reject(queueErr),
-          });
-        });
-      }
+      return performRefreshAndRetry(originalRequest);
+    }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
+    return res;
+  },
+  async (err) => {
+    const originalRequest = err.config as any;
 
-      try {
-        await axios.post("/auth/refresh", {}, { withCredentials: true });
-
-        processQueue(null);
-
-        return api(originalRequest);
-      } catch (refreshErr) {
-        processQueue(refreshErr);
-
-        window.location.href = "/auth/signin"
-
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
-      }
+    const url = String(originalRequest?.url || "");
+    if (err.response?.status === 401 && !originalRequest._retry && !originalRequest.skipRefresh && !url.includes("/auth/")) {
+      return performRefreshAndRetry(originalRequest);
     }
 
     return Promise.reject(err);
   }
 );
+
+async function performRefreshAndRetry(originalRequest: any): Promise<AxiosResponse> {
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      queue.push({
+        resolve: () => resolve(api(originalRequest)),
+        reject,
+      });
+    });
+  }
+
+  originalRequest._retry = true;
+  isRefreshing = true;
+
+  try {
+    const tryCookieRefresh = async () => {
+      return refreshApi.post("/auth/refresh", {});
+    };
+
+    const refreshRes: any = await tryCookieRefresh();
+
+    const nextTokens = extractTokensFromResponsePayload(refreshRes?.data);
+    if (nextTokens) setStoredTokens(nextTokens);
+    // Some backends may return only a new access token.
+    else {
+      const maybeAccess = (refreshRes?.data?.data?.access_token ?? refreshRes?.data?.access_token) as unknown;
+      if (typeof maybeAccess === "string" && maybeAccess.trim()) {
+        setStoredTokens({ access_token: maybeAccess });
+      }
+    }
+
+    processQueue();
+    return api(originalRequest);
+  } catch (refreshErr: any) {
+    processQueue(refreshErr);
+    // Treat missing/invalid refresh endpoints or sessions as logged-out state.
+    if (shouldRedirectToSigninOnRefreshFailure(refreshErr?.response?.status)) {
+      clearStoredTokens();
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth/signin";
+      }
+    }
+    return Promise.reject(refreshErr);
+  } finally {
+    isRefreshing = false;
+  }
+}
