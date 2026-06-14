@@ -21,6 +21,7 @@ type Props = {
     onDeleteFeatures?: (ids: (string | number)[]) => void;
     onDeselectAll?: () => void;
     onRerollGeometryId?: (oldId: string | number) => void;
+    readOnly?: boolean;
 };
 
 function SelectedGeometryPanel({
@@ -31,6 +32,7 @@ function SelectedGeometryPanel({
     onDeleteFeatures,
     onDeselectAll,
     onRerollGeometryId,
+    readOnly,
 }: Props) {
     const {
         geometryMetaForm,
@@ -156,41 +158,45 @@ function SelectedGeometryPanel({
                                 HÀNH ĐỘNG NHANH
                             </div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-                                <button
-                                    type="button"
-                                    onClick={() => onReplayEdit?.(representativeFeature.properties.id)}
-                                    style={{
-                                        border: "none",
-                                        borderRadius: "6px",
-                                        padding: "8px 10px",
-                                        cursor: "pointer",
-                                        background: "#2563eb",
-                                        color: "#ffffff",
-                                        fontWeight: 700,
-                                        fontSize: "13px",
-                                        textAlign: "center",
-                                        gridColumn: "span 2",
-                                    }}
-                                >
-                                    Vào Replay ({selectedFeatures.length} geo)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => onDeleteFeatures?.(selectedFeatures.map(f => f.properties.id))}
-                                    style={{
-                                        border: "none",
-                                        borderRadius: "6px",
-                                        padding: "7px 10px",
-                                        cursor: "pointer",
-                                        background: "#dc2626",
-                                        color: "#ffffff",
-                                        fontWeight: 600,
-                                        fontSize: "12px",
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    Xóa ({selectedFeatures.length} geo)
-                                </button>
+                                {!readOnly && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => onReplayEdit?.(representativeFeature.properties.id)}
+                                            style={{
+                                                border: "none",
+                                                borderRadius: "6px",
+                                                padding: "8px 10px",
+                                                cursor: "pointer",
+                                                background: "#2563eb",
+                                                color: "#ffffff",
+                                                fontWeight: 700,
+                                                fontSize: "13px",
+                                                textAlign: "center",
+                                                gridColumn: "span 2",
+                                            }}
+                                        >
+                                            Vào Replay ({selectedFeatures.length} geo)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => onDeleteFeatures?.(selectedFeatures.map(f => f.properties.id))}
+                                            style={{
+                                                border: "none",
+                                                borderRadius: "6px",
+                                                padding: "7px 10px",
+                                                cursor: "pointer",
+                                                background: "#dc2626",
+                                                color: "#ffffff",
+                                                fontWeight: 600,
+                                                fontSize: "12px",
+                                                textAlign: "center",
+                                            }}
+                                        >
+                                            Xóa ({selectedFeatures.length} geo)
+                                        </button>
+                                    </>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => onDeselectAll?.()}
@@ -204,6 +210,7 @@ function SelectedGeometryPanel({
                                         fontWeight: 600,
                                         fontSize: "12px",
                                         textAlign: "center",
+                                        gridColumn: readOnly ? "span 2" : undefined,
                                     }}
                                 >
                                     Bỏ chọn tất cả
@@ -229,7 +236,7 @@ function SelectedGeometryPanel({
                             <div style={{ color: "#94a3b8", fontSize: "11px", overflowWrap: "anywhere", minWidth: 0, flex: 1 }}>
                                 {isBulkMode ? `Đang chọn ${selectedFeatures.length} geometries` : `ID: ${representativeFeature.properties.id}`}
                             </div>
-                            {canRerollGeometryId && onRerollGeometryId && (
+                            {!readOnly && canRerollGeometryId && onRerollGeometryId && (
                                 <button
                                     type="button"
                                     onClick={() => onRerollGeometryId(representativeFeature.properties.id)}
@@ -268,7 +275,7 @@ function SelectedGeometryPanel({
                                             type_key: event.target.value,
                                         }))
                                     }
-                                    disabled={isEntitySubmitting}
+                                    disabled={readOnly || isEntitySubmitting}
                                     style={entityInputStyle}
                                 >
                                     {!hasCurrentVisibleTypeOption && geometryMetaForm.type_key ? (
@@ -307,7 +314,7 @@ function SelectedGeometryPanel({
                                         }))
                                     }
                                     placeholder="time_start"
-                                    disabled={isEntitySubmitting}
+                                    disabled={readOnly || isEntitySubmitting}
                                     style={entityInputStyle}
                                 />
                                 <input
@@ -319,18 +326,20 @@ function SelectedGeometryPanel({
                                         }))
                                     }
                                     placeholder="time_end"
-                                    disabled={isEntitySubmitting}
+                                    disabled={readOnly || isEntitySubmitting}
                                     style={entityInputStyle}
                                 />
-                                <button
-                                    type="button"
-                                    onClick={handleApplyGeoMeta}
-                                    disabled={isEntitySubmitting}
-                                    style={primaryGeometryButtonStyle}
-                                >
-                                    {isBulkMode ? `Apply cho ${selectedFeatures.length} geo` : "Apply"}
-                                </button>
-                                {onReplayEdit && !isBulkMode && selectedFeatures.length > 0 && (
+                                {!readOnly && (
+                                    <button
+                                        type="button"
+                                        onClick={handleApplyGeoMeta}
+                                        disabled={isEntitySubmitting}
+                                        style={primaryGeometryButtonStyle}
+                                    >
+                                        {isBulkMode ? `Apply cho ${selectedFeatures.length} geo` : "Apply"}
+                                    </button>
+                                )}
+                                {!readOnly && onReplayEdit && !isBulkMode && selectedFeatures.length > 0 && (
                                     <button
                                         type="button"
                                         onClick={() => onReplayEdit(selectedFeatures[0].properties.id)}
@@ -359,7 +368,7 @@ function SelectedGeometryPanel({
                         )}
                     </div>
 
-                    {changeCount > 0 ? (
+                    {!readOnly && changeCount > 0 ? (
                         <div style={{ color: "#fca5a5", fontSize: "12px" }}>
                             Thay đổi sẽ vào lịch sử khi Commit.
                         </div>

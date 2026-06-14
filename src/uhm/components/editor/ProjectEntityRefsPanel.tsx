@@ -15,6 +15,7 @@ type Props = {
   onToggleBindEntityForSelectedGeometry?: (entityId: string, nextChecked: boolean) => void;
   onRerollEntityId?: (oldId: string, nextId: string) => void;
   onDeleteEntity?: (entityId: string) => void;
+  readOnly?: boolean;
 };
 
 function ProjectEntityRefsPanel({
@@ -25,6 +26,7 @@ function ProjectEntityRefsPanel({
   onToggleBindEntityForSelectedGeometry,
   onRerollEntityId,
   onDeleteEntity,
+  readOnly,
 }: Props) {
   const {
     snapshotEntityRows,
@@ -44,11 +46,12 @@ function ProjectEntityRefsPanel({
     }))
   );
   const canBindToggle =
+    !readOnly &&
     Boolean(hasSelectedGeometry) &&
     Array.isArray(selectedGeometryEntityIds) &&
     typeof onToggleBindEntityForSelectedGeometry === "function";
 
-  const canEditEntity = typeof onUpdateEntity === "function";
+  const canEditEntity = !readOnly && typeof onUpdateEntity === "function";
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [activeEntityId, setActiveEntityId] = useState<string | null>(null);
@@ -236,7 +239,7 @@ function ProjectEntityRefsPanel({
                     )}
                   </button>
                 ) : null}
-                {typeof onDeleteEntity === "function" ? (
+                {!readOnly && typeof onDeleteEntity === "function" ? (
                   <button
                     type="button"
                     title="Xóa thực thể khỏi dự án"
@@ -420,7 +423,7 @@ function ProjectEntityRefsPanel({
         </div>
       ) : null}
 
-      {collapsed ? null : (
+      {collapsed || readOnly ? null : (
       <>
       <div
         style={{

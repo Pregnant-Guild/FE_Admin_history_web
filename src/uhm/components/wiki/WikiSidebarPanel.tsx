@@ -57,6 +57,7 @@ type Props = {
   projectId: string;
   setWikis: React.Dispatch<React.SetStateAction<WikiSnapshot[]>>;
   onRemoveWiki?: (wikiId: string) => void;
+  readOnly?: boolean;
 };
 
 function clampTitle(title: string) {
@@ -64,7 +65,7 @@ function clampTitle(title: string) {
   return t.length ? t.slice(0, 120) : "Untitled wiki";
 }
 
-function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
+function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki, readOnly }: Props) {
   const { wikis, requestedActiveId } = useEditorStore(
     useShallow((state) => ({
       wikis: state.snapshotWikis,
@@ -672,26 +673,28 @@ function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
                   {isNewWiki(w) ? <NewBadge /> : null}
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => removeWiki(w.id)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 22,
-                  height: 22,
-                  borderRadius: 6,
-                  border: "1px solid #334155",
-                  background: "#0b1220",
-                  cursor: "pointer",
-                  flex: "0 0 auto",
-                }}
-                title="Xóa wiki khỏi dự án"
-                aria-label={`Xóa wiki ${w.id}`}
-              >
-                <TrashIcon />
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => removeWiki(w.id)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 22,
+                    height: 22,
+                    borderRadius: 6,
+                    border: "1px solid #334155",
+                    background: "#0b1220",
+                    cursor: "pointer",
+                    flex: "0 0 auto",
+                  }}
+                  title="Xóa wiki khỏi dự án"
+                  aria-label={`Xóa wiki ${w.id}`}
+                >
+                  <TrashIcon />
+                </button>
+              )}
             </div>
           ))}
 
@@ -702,7 +705,7 @@ function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
         </div>
       )}
 
-      {collapsed ? null : (
+      {collapsed || readOnly ? null : (
         <div
           style={{
             marginTop: "10px",
@@ -842,15 +845,17 @@ function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
               <div className="text-sm font-mono break-all text-gray-700 dark:text-gray-200">{projectId}</div>
             </div>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={openImportPicker}
-                disabled={!activeId}
-                title="Import HTML"
-              >
-                Import
-              </Button>
+              {!readOnly && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={openImportPicker}
+                  disabled={!activeId}
+                  title="Import HTML"
+                >
+                  Import
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="outline"
@@ -861,11 +866,13 @@ function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
                 Export {wikiDocStorageFormat.toUpperCase()}
               </Button>
               <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
+                {readOnly ? "Close" : "Cancel"}
               </Button>
-              <Button size="sm" className="bg-brand-500 hover:bg-brand-600 text-white" onClick={saveWiki} disabled={!activeId}>
-                Save
-              </Button>
+              {!readOnly && (
+                <Button size="sm" className="bg-brand-500 hover:bg-brand-600 text-white" onClick={saveWiki} disabled={!activeId}>
+                  Save
+                </Button>
+              )}
             </div>
           </div>
 
@@ -880,7 +887,7 @@ function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
                     onChange={(e) => setWikiTitle(e.target.value)}
                     className="h-11 w-full rounded-xl border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:text-white/90 dark:focus:border-brand-800"
                     placeholder="Wiki title"
-                    disabled={!activeId}
+                    disabled={readOnly || !activeId}
                   />
                 </div>
                 <div>
@@ -890,7 +897,7 @@ function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
                     onChange={(e) => setWikiSlug(e.target.value)}
                     className="h-11 w-full rounded-xl border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:text-white/90 dark:focus:border-brand-800"
                     placeholder="wiki-slug"
-                    disabled={!activeId}
+                    disabled={readOnly || !activeId}
                   />
                 </div>
                 {wikiSaveError ? (
@@ -907,7 +914,7 @@ function WikiSidebarPanel({ projectId, setWikis, onRemoveWiki }: Props) {
                     modules={quillModules}
                     className="min-h-[320px] uhm-wiki-quill"
                     placeholder="Nhap noi dung wiki..."
-                    readOnly={!activeId}
+                    readOnly={readOnly || !activeId}
                   />
                 </div>
               </div>

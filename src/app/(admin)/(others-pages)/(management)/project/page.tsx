@@ -167,6 +167,10 @@ export default function ProjectsPage(_props: {
     router.push(`/projects/${id}`);
   };
 
+  const handleViewMap = (id: string) => {
+    router.push(`/projects/${id}/map`);
+  };
+
   const pagination = tableData?.pagination;
 
   return (
@@ -236,6 +240,7 @@ export default function ProjectsPage(_props: {
               sortBy={sortBy}
               sortOrder={sortOrder}
               onViewDetails={handleViewDetails}
+              onViewMap={handleViewMap}
             />
           </div>
 

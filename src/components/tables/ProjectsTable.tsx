@@ -33,6 +33,7 @@ interface ProjectsTableProps {
   sortBy?: ProjectSortColumn;
   sortOrder?: "asc" | "desc";
   onViewDetails: (id: string) => void;
+  onViewMap: (id: string) => void;
 }
 
 export default function ProjectsTable({
@@ -41,6 +42,7 @@ export default function ProjectsTable({
   sortBy,
   sortOrder,
   onViewDetails,
+  onViewMap,
 }: ProjectsTableProps) {
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "-";
@@ -105,7 +107,7 @@ export default function ProjectsTable({
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-[#0d1117]">
       <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="min-w-[700px]">
+        <div className="min-w-[850px]">
 
           <div className="flex items-center px-5 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#161b22]">
 
@@ -116,17 +118,23 @@ export default function ProjectsTable({
           <SortButton column="title" label="Tên dự án" />
         </div>
 
-        <div className="w-40 shrink-0">
+        <div className="w-32 shrink-0">
           <SortButton column="created_at" label="Ngày tạo" />
         </div>
 
-        <div className="w-40 shrink-0">
+        <div className="w-32 shrink-0">
           <SortButton column="updated_at" label="Cập nhật" />
         </div>
 
-        <div className="w-[120px] shrink-0 text-right">
+        <div className="w-[100px] shrink-0 text-right">
           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
             Thành viên
+          </span>
+        </div>
+
+        <div className="w-[180px] shrink-0 text-right">
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Thao tác
           </span>
         </div>
       </div>
@@ -182,15 +190,15 @@ export default function ProjectsTable({
                 </div>
               </div>
 
-              <div className="md:w-40 shrink-0 text-xs text-gray-500 dark:text-[#8b949e]">
+              <div className="md:w-32 shrink-0 text-xs text-gray-500 dark:text-[#8b949e]">
                 <span>{formatDate(item.created_at)}</span>
               </div>
 
-              <div className="md:w-40 shrink-0 text-xs text-gray-500 dark:text-[#8b949e]">
+              <div className="md:w-32 shrink-0 text-xs text-gray-500 dark:text-[#8b949e]">
                 <span>{formatDate(item.updated_at)}</span>
               </div>
 
-              <div className="flex items-center md:w-[120px] md:justify-end shrink-0">
+              <div className="flex items-center md:w-[100px] md:justify-end shrink-0">
                 <div className="flex -space-x-2 overflow-hidden">
                   {item.members && item.members.length > 0 ? (
                     <>
@@ -233,6 +241,23 @@ export default function ProjectsTable({
                     <span className="text-sm text-gray-400 dark:text-gray-600 italic"></span>
                   )}
                 </div>
+              </div>
+
+              <div className="flex items-center md:w-[180px] md:justify-end shrink-0 gap-2">
+                <button
+                  onClick={() => onViewDetails(item.id)}
+                  className="px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Quản lý
+                </button>
+                <a
+                  href={`/projects/${item.id}/map`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors inline-block"
+                >
+                  Chi tiết
+                </a>
               </div>
 
             </div>

@@ -20,16 +20,12 @@ import { API_ENDPOINTS } from "@/uhm/api/config";
 import { normalizeEditorSnapshot, getDefaultTypeIdForFeature, normalizeFeatureEntityIds } from "@/uhm/lib/editor/snapshot/editorSnapshot";
 import { normalizeTimelineYearValue } from "@/uhm/lib/utils/timeline";
 import { isFeatureVisibleAtYear } from "@/uhm/lib/editor/editorPageUtils";
-import { buildEntityLabelContextDraft as buildPreviewEntityLabelContextDraft } from "@/uhm/lib/preview/relationIndex";
 import { getDirectGeometryChildIds } from "@/uhm/lib/editor/geometry/geometryBinding";
 import { ResizeHandle } from "@/uhm/components/ui/ResizeHandle";
-import { EMPTY_FEATURE_COLLECTION, WORLD_BBOX } from "@/uhm/lib/map/geo/constants";
+import { EMPTY_FEATURE_COLLECTION } from "@/uhm/lib/map/geo/constants";
 import { FIXED_TIMELINE_RANGE, clampYearToFixedRange } from "@/uhm/lib/utils/timeline";
 import { loadBackgroundLayerVisibilityFromStorage } from "@/uhm/lib/editor/background/backgroundVisibilityStorage";
 
-
-import { apiGetSubmissionDetail, updateSubmission } from "@/service/submisisonService";
-import { SubmissionItem } from "@/components/tables/SubmissionsTable";
 import {
     EditorStoreProvider,
     useEditorStore,
@@ -44,7 +40,7 @@ import type { WikiSnapshot } from "@/uhm/types/wiki";
 const CURRENT_YEAR = new Date().getUTCFullYear();
 const DEFAULT_EDITOR_USER_ID = "admin-viewer";
 
-// Helper functions copied from useProjectCommands.ts to build read-only session snapshot.
+// Helper functions to build read-only session snapshot.
 function toEditorSessionSnapshot(snapshot: EditorSnapshot): EditorSnapshot {
     return {
         ...snapshot,
@@ -180,7 +176,7 @@ function toEditorSessionEntityWikiLinks(input: EditorSnapshot["entity_wiki"]): E
     });
 }
 
-export default function SubmissionDetailPage() {
+export default function ProjectMapPage() {
     return (
         <EditorStoreProvider
             options={{
@@ -190,12 +186,11 @@ export default function SubmissionDetailPage() {
                 currentYear: CURRENT_YEAR,
             }}
         >
-            <SubmissionDetailPageContent />
+            <ProjectMapPageContent />
         </EditorStoreProvider>
     );
 }
 
-// Side Component to set the Zustand store state based on loaded data.
 function StoreInitializer({
     project,
     sessionSnapshot,
@@ -257,19 +252,16 @@ function clampNumber(value: number, min: number, max: number): number {
     return value;
 }
 
-function SubmissionDetailPageContent() {
+function ProjectMapPageContent() {
     const params = useParams();
     const router = useRouter();
     const id = String(params.id || "");
 
-    const [submission, setSubmission] = useState<SubmissionItem | null>(null);
-    const [project, setProject] = useState<Project | null>(null);
+    const [project, setProject] = useState<any | null>(null);
+    const [latestCommit, setLatestCommit] = useState<ProjectCommit | null>(null);
     const [sessionSnapshot, setSessionSnapshot] = useState<EditorSnapshot | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const [reviewNote, setReviewNote] = useState("");
-    const [submitting, setSubmitting] = useState(false);
 
     // Retrieve Zustand state
     const {
@@ -280,9 +272,6 @@ function SubmissionDetailPageContent() {
         setTimelineDraftYear,
         backgroundVisibility,
         geometryVisibility,
-        snapshotEntityRows,
-        snapshotWikis,
-        snapshotEntityWikiLinks,
         leftPanelWidth,
         setLeftPanelWidth,
         rightPanelWidth,
@@ -297,9 +286,6 @@ function SubmissionDetailPageContent() {
         setTimelineDraftYear: state.setTimelineDraftYear,
         backgroundVisibility: state.backgroundVisibility,
         geometryVisibility: state.geometryVisibility,
-        snapshotEntityRows: state.snapshotEntityRows,
-        snapshotWikis: state.snapshotWikis,
-        snapshotEntityWikiLinks: state.snapshotEntityWikiLinks,
         leftPanelWidth: state.leftPanelWidth,
         setLeftPanelWidth: state.setLeftPanelWidth,
         rightPanelWidth: state.rightPanelWidth,
@@ -308,37 +294,47 @@ function SubmissionDetailPageContent() {
         setTimelineFilterEnabled: state.setTimelineFilterEnabled,
     })));
 
-    // Fetch submission details and project commit snapshot
+    // Fetch project details and latest commit snapshot
     useEffect(() => {
         async function loadData() {
             try {
                 setLoading(true);
                 setError(null);
-                
-                const subRes = await apiGetSubmissionDetail(id);
-                if (!subRes || !subRes.status || !subRes.data) {
-                    throw new Error("Không thể tải thông tin submission");
-                }
-                const subData = subRes.data as SubmissionItem;
-                setSubmission(subData);
-                setReviewNote(subData.review_note || "");
 
-                const projectId = subData.project_id;
-                const commits = await fetchProjectCommits(projectId);
-                
-                const projRes = await requestJson<Project>(`${API_ENDPOINTS.projects}/${encodeURIComponent(projectId)}`);
+                const projRes = await requestJson<any>(`${API_ENDPOINTS.projects}/${encodeURIComponent(id)}`);
+                if (!projRes) {
+                    throw new Error("Không thể tải thông tin dự án");
+                }
                 setProject(projRes);
 
-                const targetCommit = commits.find((c) => String(c.id) === String(subData.commit_id));
-                if (!targetCommit) {
-                    throw new Error(`Không tìm thấy commit #${subData.commit_id} của project`);
-                }
+                const commits = await fetchProjectCommits(id);
+                const headCommitId = projRes.latest_commit_id ?? null;
+                const targetCommit = headCommitId ? commits.find((c) => c.id === headCommitId) || null : null;
 
-                const snapshot = normalizeEditorSnapshot(targetCommit.snapshot_json);
-                const session = snapshot ? toEditorSessionSnapshot(snapshot) : null;
-                setSessionSnapshot(session);
+                if (targetCommit) {
+                    const snapshot = normalizeEditorSnapshot(targetCommit.snapshot_json);
+                    const session = snapshot ? toEditorSessionSnapshot(snapshot) : null;
+                    setSessionSnapshot(session);
+                    setLatestCommit(targetCommit);
+                } else if (commits.length > 0) {
+                    const fallbackCommit = commits[0];
+                    const snapshot = normalizeEditorSnapshot(fallbackCommit.snapshot_json);
+                    const session = snapshot ? toEditorSessionSnapshot(snapshot) : null;
+                    setSessionSnapshot(session);
+                    setLatestCommit(fallbackCommit);
+                } else {
+                    const emptySnapshot: EditorSnapshot = {
+                        editor_feature_collection: EMPTY_FEATURE_COLLECTION,
+                        entities: [],
+                        geometries: [],
+                        geometry_entity: [],
+                        wikis: [],
+                        entity_wiki: [],
+                    };
+                    setSessionSnapshot(emptySnapshot);
+                }
             } catch (err: any) {
-                console.error("Error loading submission details:", err);
+                console.error("Error loading project map details:", err);
                 setError(err.message || "Lỗi hệ thống");
             } finally {
                 setLoading(false);
@@ -349,7 +345,6 @@ function SubmissionDetailPageContent() {
         }
     }, [id]);
 
-    // Apply filters based on timeline year
     const activeTimelineYear = timelineDraftYear;
     const activeTimelineFilterEnabled = timelineFilterEnabled;
 
@@ -366,30 +361,6 @@ function SubmissionDetailPageContent() {
         return baselineFeatureCollection || EMPTY_FEATURE_COLLECTION;
     }, [baselineFeatureCollection]);
 
-    // Handle review (approve / reject)
-    const handleReview = async (status: "APPROVED" | "REJECTED") => {
-        if (!submission) return;
-        setSubmitting(true);
-        try {
-            const res = await updateSubmission(submission.id, {
-                status,
-                review_note: reviewNote,
-            });
-            if (res?.status) {
-                toast.success("Cập nhật trạng thái submission thành công!");
-                setSubmission((prev) => prev ? { ...prev, status, review_note: reviewNote } : null);
-            } else {
-                toast.error(res?.message || "Cập nhật thất bại");
-            }
-        } catch (err: any) {
-            console.error(err);
-            toast.error("Lỗi khi cập nhật trạng thái submission");
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    // Right Sidebar Geometry Choices
     const geometryChoices = useMemo(() => {
         const draft = baselineFeatureCollection || EMPTY_FEATURE_COLLECTION;
         const mapRenderGeometryIds = new Set(
@@ -399,7 +370,7 @@ function SubmissionDetailPageContent() {
         const rows = draft.features
             .filter((f) => f && f.properties && (typeof f.properties.id === "string" || typeof f.properties.id === "number"))
             .map((f) => {
-                const id = String(f.properties.id);
+                const fid = String(f.properties.id);
                 const semantic = String(f.properties.type || getDefaultTypeIdForFeature(f) || "").trim();
                 const label = semantic.length ? `${semantic} (${f.geometry.type})` : "Geometry";
                 const timeStart = normalizeTimelineYearValue(f.properties.time_start);
@@ -412,14 +383,14 @@ function SubmissionDetailPageContent() {
                         : !hasStart || !hasEnd
                             ? "partial"
                             : "complete";
-                const isTimelineVisible = mapRenderGeometryIds.has(id);
+                const isTimelineVisible = mapRenderGeometryIds.has(fid);
                 const timelineStatus: "off" | "visible" | "filteredOut" = !activeTimelineFilterEnabled
                     ? "off"
                     : isTimelineVisible
                         ? "visible"
                         : "filteredOut";
                 return {
-                    id,
+                    id: fid,
                     label,
                     time_start: timeStart,
                     time_end: timeEnd,
@@ -439,7 +410,6 @@ function SubmissionDetailPageContent() {
         return rows;
     }, [baselineFeatureCollection, activeMapDraft, activeTimelineFilterEnabled]);
 
-    // Selected features state resolution
     const selectedFeatures = useMemo<Feature[]>(() => {
         const draft = baselineFeatureCollection || EMPTY_FEATURE_COLLECTION;
         return selectedFeatureIds
@@ -479,7 +449,7 @@ function SubmissionDetailPageContent() {
         );
     }
 
-    if (error || !submission || !project || !sessionSnapshot) {
+    if (error || !project || !sessionSnapshot) {
         return (
             <div style={{ display: "flex", width: "100vw", height: "100vh", background: "#0b1220", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "20px", color: "#f8fafc" }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
@@ -487,9 +457,9 @@ function SubmissionDetailPageContent() {
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                <div style={{ fontSize: "16px", fontWeight: 600 }}>{error || "Không thể tìm thấy submission"}</div>
+                <div style={{ fontSize: "16px", fontWeight: 600 }}>{error || "Không thể tìm thấy dự án"}</div>
                 <button
-                    onClick={() => router.push("/submissions")}
+                    onClick={() => router.push("/project")}
                     style={{
                         background: "#3b82f6",
                         color: "white",
@@ -519,10 +489,9 @@ function SubmissionDetailPageContent() {
                 }
             `}</style>
 
-            {/* Initialize store with project & snapshot data */}
             <StoreInitializer project={project} sessionSnapshot={sessionSnapshot} />
 
-            {/* Left Sidebar showing submission details and review form */}
+            {/* Left Sidebar */}
             <div
                 style={{
                     width: leftPanelWidth,
@@ -537,7 +506,7 @@ function SubmissionDetailPageContent() {
                 {/* Header */}
                 <div style={{ padding: "16px", borderBottom: "1px solid #1f2937", display: "flex", alignItems: "center", gap: "12px" }}>
                     <button
-                        onClick={() => router.push("/submissions")}
+                        onClick={() => router.push("/project")}
                         style={{
                             background: "transparent",
                             border: "none",
@@ -555,44 +524,19 @@ function SubmissionDetailPageContent() {
                         </svg>
                     </button>
                     <div>
-                        <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 500 }}>Chi tiết yêu cầu duyệt</div>
-                        <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc" }}>#{submission.id.slice(0, 8)}</div>
+                        <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 500 }}>Chi tiết bản đồ dự án</div>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "#f8fafc" }}>{project.title}</div>
                     </div>
                 </div>
 
-                {/* Info scroll area */}
+                {/* Info Area */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "20px" }}>
-                    {/* Project Title */}
                     <div>
-                        <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "6px" }}>Dự án</div>
-                        <div style={{ fontSize: "15px", fontWeight: 700, color: "#38bdf8" }}>{submission.project_title}</div>
-                        <div style={{ fontSize: "12px", color: "#cbd5e1", marginTop: "4px", lineHeight: "1.5" }}>{submission.project_description || "Không có mô tả dự án."}</div>
+                        <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "6px" }}>Mô tả dự án</div>
+                        <div style={{ fontSize: "12px", color: "#cbd5e1", lineHeight: "1.5" }}>{project.description || "Không có mô tả dự án."}</div>
                     </div>
 
-                    {/* Submitter */}
-                    <div>
-                        <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "6px" }}>Người gửi</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            {submission.user?.avatar_url ? (
-                                <img src={submission.user.avatar_url} alt="avatar" style={{ width: "32px", height: "32px", borderRadius: "50%" }} />
-                            ) : (
-                                <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#334155", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "12px", color: "#e2e8f0" }}>
-                                    {submission.user?.display_name?.charAt(0).toUpperCase() || "U"}
-                                </div>
-                            )}
-                            <div>
-                                <div style={{ fontSize: "13px", fontWeight: 600 }}>{submission.user?.display_name || "N/A"}</div>
-                                <div style={{ fontSize: "12px", color: "#94a3b8" }}>{submission.user?.email || ""}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Meta grid */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <div>
-                            <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "4px" }}>Ngày tạo</div>
-                            <div style={{ fontSize: "12px", color: "#e2e8f0" }}>{new Date(submission.created_at).toLocaleString("vi-VN")}</div>
-                        </div>
                         <div>
                             <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "4px" }}>Trạng thái</div>
                             <div>
@@ -603,109 +547,61 @@ function SubmissionDetailPageContent() {
                                         borderRadius: "4px",
                                         fontSize: "11px",
                                         fontWeight: 700,
-                                        background: submission.status === "PENDING" ? "#eab308" : submission.status === "APPROVED" || submission.status === "SUCCESS" ? "#22c55e" : "#ef4444",
+                                        background: project.project_status === "PUBLIC" ? "#22c55e" : project.project_status === "PRIVATE" ? "#eab308" : "#64748b",
                                         color: "#0f172a",
                                     }}
                                 >
-                                    {submission.status}
+                                    {project.project_status || "N/A"}
                                 </span>
                             </div>
                         </div>
+                        <div>
+                            <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "4px" }}>Người sở hữu (Owner)</div>
+                            <div style={{ fontSize: "12px", color: "#cbd5e1" }}>{project.user_id || "N/A"}</div>
+                        </div>
                     </div>
 
-                    {submission.content && (
+                    {project.user && (
                         <div>
-                            <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "6px" }}>Nội dung ghi chú</div>
-                            <div style={{ fontSize: "12px", color: "#cbd5e1", background: "#0f172a", padding: "10px", borderRadius: "6px", border: "1px solid #1f2937", whiteSpace: "pre-wrap" }}>
-                                {submission.content}
+                            <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "6px" }}>Thông tin Owner</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                {project.user.avatar_url ? (
+                                    <img src={project.user.avatar_url} alt="avatar" style={{ width: "32px", height: "32px", borderRadius: "50%" }} />
+                                ) : (
+                                    <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#334155", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "12px", color: "#e2e8f0" }}>
+                                        {project.user.display_name?.charAt(0).toUpperCase() || "U"}
+                                    </div>
+                                )}
+                                <div>
+                                    <div style={{ fontSize: "13px", fontWeight: 600 }}>{project.user.display_name || "N/A"}</div>
+                                    <div style={{ fontSize: "12px", color: "#94a3b8" }}>{project.user.email || ""}</div>
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Review Forms */}
-                    <div style={{ borderTop: "1px solid #1f2937", paddingTop: "16px", marginTop: "8px" }}>
-                        <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "10px" }}>Đánh giá của Admin</div>
-                        
-                        {submission.status === "PENDING" ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                                <textarea
-                                    value={reviewNote}
-                                    onChange={(e) => setReviewNote(e.target.value)}
-                                    placeholder="Nhập phản hồi/ghi chú duyệt tại đây..."
-                                    style={{
-                                        width: "100%",
-                                        height: "100px",
-                                        background: "#0f172a",
-                                        border: "1px solid #1f2937",
-                                        borderRadius: "6px",
-                                        color: "#cbd5e1",
-                                        padding: "8px 10px",
-                                        fontSize: "12px",
-                                        outline: "none",
-                                        resize: "none",
-                                    }}
-                                />
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                                    <button
-                                        onClick={() => handleReview("APPROVED")}
-                                        disabled={submitting}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            background: "#16a34a",
-                                            color: "white",
-                                            border: "none",
-                                            padding: "10px 12px",
-                                            borderRadius: "6px",
-                                            cursor: submitting ? "not-allowed" : "pointer",
-                                            fontSize: "13px",
-                                            fontWeight: 700,
-                                            transition: "background 0.2s",
-                                        }}
-                                    >
-                                        {submitting ? "Đang xử lý..." : "Duyệt thông qua"}
-                                    </button>
-                                    <button
-                                        onClick={() => handleReview("REJECTED")}
-                                        disabled={submitting}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            background: "#dc2626",
-                                            color: "white",
-                                            border: "none",
-                                            padding: "10px 12px",
-                                            borderRadius: "6px",
-                                            cursor: submitting ? "not-allowed" : "pointer",
-                                            fontSize: "13px",
-                                            fontWeight: 700,
-                                            transition: "background 0.2s",
-                                        }}
-                                    >
-                                        {submitting ? "Đang xử lý..." : "Từ chối duyệt"}
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ borderTop: "1px solid #1f2937", paddingTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <div style={{ fontSize: "10px", textTransform: "uppercase", color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em" }}>Thông tin Commit mới nhất</div>
+                        {latestCommit ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#0f172a", padding: "12px", borderRadius: "8px", border: "1px solid #1f2937" }}>
                                 <div>
-                                    <div style={{ fontSize: "11px", color: "#94a3b8" }}>Người duyệt</div>
-                                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#e2e8f0" }}>{submission.reviewer?.display_name || "Admin"}</div>
+                                    <div style={{ fontSize: "10px", color: "#94a3b8" }}>Nội dung</div>
+                                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#e2e8f0" }}>{latestCommit.edit_summary || "(Không có nội dung)"}</div>
                                 </div>
-                                {submission.reviewed_at && (
+                                <div>
+                                    <div style={{ fontSize: "10px", color: "#94a3b8" }}>ID Commit</div>
+                                    <div style={{ fontSize: "11px", color: "#cbd5e1", fontFamily: "monospace" }}>{latestCommit.id}</div>
+                                </div>
+                                {latestCommit.created_at && (
                                     <div>
-                                        <div style={{ fontSize: "11px", color: "#94a3b8" }}>Thời gian duyệt</div>
-                                        <div style={{ fontSize: "12px", color: "#cbd5e1" }}>{new Date(submission.reviewed_at).toLocaleString("vi-VN")}</div>
+                                        <div style={{ fontSize: "10px", color: "#94a3b8" }}>Thời gian</div>
+                                        <div style={{ fontSize: "11px", color: "#cbd5e1" }}>{new Date(latestCommit.created_at).toLocaleString("vi-VN")}</div>
                                     </div>
                                 )}
-                                <div>
-                                    <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "4px" }}>Ghi chú duyệt</div>
-                                    <div style={{ fontSize: "12px", color: "#cbd5e1", background: "#0f172a", padding: "10px", borderRadius: "6px", border: "1px solid #1f2937", minHeight: "40px" }}>
-                                        {submission.review_note || "(Không có ghi chú)"}
-                                    </div>
-                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic" }}>
+                                Dự án chưa có commit nào. Bản đồ trống.
                             </div>
                         )}
                     </div>
@@ -756,7 +652,7 @@ function SubmissionDetailPageContent() {
                 }}
             />
 
-            {/* Right Sidebar showing geometry, entities, wikis, and bindings */}
+            {/* Right Sidebar */}
             <BackgroundLayersPanel
                 width={rightPanelWidth}
                 topContent={

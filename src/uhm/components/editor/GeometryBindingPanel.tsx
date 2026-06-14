@@ -32,6 +32,7 @@ type Props = {
   selectedGeometryChildIds: string[];
   onToggleBindGeometryForSelectedGeometry?: (geometryId: string, nextChecked: boolean) => void;
   onFocusGeometry?: (geometryId: string) => void;
+  readOnly?: boolean;
 };
 
 function GeometryBindingPanel({
@@ -40,6 +41,7 @@ function GeometryBindingPanel({
   selectedGeometryChildIds,
   onToggleBindGeometryForSelectedGeometry,
   onFocusGeometry,
+  readOnly,
 }: Props) {
   const {
     selectedFeatureIds,
@@ -62,7 +64,7 @@ function GeometryBindingPanel({
     selectedGeometryId ??
     (selectedFeatureIds.length > 0 ? String(selectedFeatureIds[0]) : null);
   const canBindToggle =
-    Boolean(effectiveSelectedGeometryId) && typeof onToggleBindGeometryForSelectedGeometry === "function";
+    !readOnly && Boolean(effectiveSelectedGeometryId) && typeof onToggleBindGeometryForSelectedGeometry === "function";
   const canFocusGeometry = typeof onFocusGeometry === "function";
 
   const [collapsed, setCollapsed] = useState(false);

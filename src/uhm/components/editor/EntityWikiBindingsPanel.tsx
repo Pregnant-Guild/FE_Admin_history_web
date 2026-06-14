@@ -21,6 +21,7 @@ type BindingRow = {
 
 type Props = {
   setLinks: React.Dispatch<React.SetStateAction<EntityWikiLinkSnapshot[]>>;
+  readOnly?: boolean;
 };
 
 function wikiTitle(w: WikiSnapshot): string {
@@ -28,7 +29,7 @@ function wikiTitle(w: WikiSnapshot): string {
   return t.length ? t : "Untitled wiki";
 }
 
-function EntityWikiBindingsPanel({ setLinks }: Props) {
+function EntityWikiBindingsPanel({ setLinks, readOnly }: Props) {
   const {
     entityCatalog,
     snapshotEntityRows,
@@ -189,186 +190,189 @@ function EntityWikiBindingsPanel({ setLinks }: Props) {
 
       {collapsed ? null : (
         <div style={{ marginTop: "10px", display: "grid", gap: "8px" }}>
-        <div>
-          <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>Entity</div>
-          <select
-            value={activeEntityId}
-            onChange={(e) => setActiveEntityId(e.target.value)}
-            style={{
-              width: "100%",
-              border: "1px solid #1f2937",
-              background: "#0b1220",
-              color: "#e5e7eb",
-              borderRadius: "6px",
-              padding: "8px 10px",
-              fontSize: "12px",
-              outline: "none",
-            }}
-          >
-            <option value="">Select entity…</option>
-            {entityChoices.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </select>
-          {activeEntityId ? (
-            <ActiveSelectionLabel
-              label={activeEntityChoice?.name || activeEntityId}
-              id={activeEntityId}
-              isNew={Boolean(activeEntityChoice?.isNew)}
-            />
-          ) : null}
-        </div>
-
-        <div>
-          <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>Wikis</div>
-          <div style={{ display: "grid", gap: "8px" }}>
-            <select
-              value={activeWikiId}
-              onChange={(e) => setActiveWikiId(e.target.value)}
-              disabled={wikiChoices.length === 0}
-              style={{
-                width: "100%",
-                border: "1px solid #1f2937",
-                background: "#0b1220",
-                color: "#e5e7eb",
-                borderRadius: "6px",
-                padding: "8px 10px",
-                fontSize: "12px",
-                outline: "none",
-                opacity: wikiChoices.length === 0 ? 0.7 : 1,
-                cursor: wikiChoices.length === 0 ? "not-allowed" : "pointer",
-              }}
-            >
-              <option value="">
-                {wikiChoices.length === 0 ? "No wikis available" : "Select wiki…"}
-              </option>
-              {wikiChoices.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.title}
-                </option>
-              ))}
-            </select>
-            {activeWikiChoice ? (
-              <ActiveSelectionLabel
-                label={activeWikiChoice.title}
-                id={activeWikiChoice.id}
-                isNew={Boolean(activeWikiChoice.isNew)}
-              />
-            ) : null}
-
-            {wikiChoices.length === 0 ? (
-              <div style={{ fontSize: "12px", color: "#94a3b8" }}>No wiki in project yet.</div>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  disabled={!activeEntityId || !activeWikiId}
-                  onClick={() => toggle(activeWikiId)}
+          {!readOnly && (
+            <>
+              <div>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>Entity</div>
+                <select
+                  value={activeEntityId}
+                  onChange={(e) => setActiveEntityId(e.target.value)}
                   style={{
-                    border: "none",
+                    width: "100%",
+                    border: "1px solid #1f2937",
+                    background: "#0b1220",
+                    color: "#e5e7eb",
                     borderRadius: "6px",
                     padding: "8px 10px",
-                    cursor: !activeEntityId || !activeWikiId ? "not-allowed" : "pointer",
-                    background: activeWikiLinked ? "#334155" : "#16a34a",
-                    color: "white",
-                    fontWeight: 800,
-                    fontSize: 12,
-                    opacity: !activeEntityId || !activeWikiId ? 0.65 : 1,
+                    fontSize: "12px",
+                    outline: "none",
                   }}
                 >
-                  {activeWikiLinked ? "Unlink wiki" : "Link wiki"}
-                </button>
-
-                {activeWikiChoice ? (
-                  <div style={{ fontSize: 12, color: "#94a3b8", overflowWrap: "anywhere" }}>
-                    {activeWikiChoice.id}
-                  </div>
+                  <option value="">Select entity…</option>
+                  {entityChoices.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
+                {activeEntityId ? (
+                  <ActiveSelectionLabel
+                    label={activeEntityChoice?.name || activeEntityId}
+                    id={activeEntityId}
+                    isNew={Boolean(activeEntityChoice?.isNew)}
+                  />
                 ) : null}
+              </div>
 
-                {!activeEntityId ? (
-                  <div style={{ fontSize: 12, color: "#94a3b8" }}>Pick an entity to see/link wikis.</div>
-                ) : activeLinks.size ? (
-                  <div style={{ display: "grid", gap: "6px", maxHeight: 250, overflowY: "auto", paddingRight: 4 }}>
-                    <div style={{ fontSize: 12, color: "#94a3b8" }}>Linked wikis ({activeLinks.size})</div>
-                    {Array.from(activeLinks).map((id) => {
-                      const w = wikiChoices.find((x) => x.id === id) || null;
-                      return (
-                        <div
-                          key={id}
-                          style={{
-                            padding: "8px",
-                            borderRadius: "6px",
-                            border: "1px solid #1f2937",
-                            background: "#111827",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 8,
-                          }}
-                          title={id}
-                        >
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                              <span
-                                style={{
-                                  color: "#e5e7eb",
-                                  fontSize: 12,
-                                  whiteSpace: "nowrap",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {w?.title || "Untitled wiki"}
-                              </span>
-                            </div>
-                            <div style={{ color: "#94a3b8", fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {id}
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => toggle(id)}
-                            style={{
-                              border: "none",
-                              background: "#0b1220",
-                              color: "#fecaca",
-                              cursor: "pointer",
-                              borderRadius: 6,
-                              padding: "6px 8px",
-                              fontSize: 12,
-                              fontWeight: 800,
-                              flex: "0 0 auto",
-                            }}
-                          >
-                            Unlink
-                          </button>
+              <div>
+                <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>Wikis</div>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  <select
+                    value={activeWikiId}
+                    onChange={(e) => setActiveWikiId(e.target.value)}
+                    disabled={wikiChoices.length === 0}
+                    style={{
+                      width: "100%",
+                      border: "1px solid #1f2937",
+                      background: "#0b1220",
+                      color: "#e5e7eb",
+                      borderRadius: "6px",
+                      padding: "8px 10px",
+                      fontSize: "12px",
+                      outline: "none",
+                      opacity: wikiChoices.length === 0 ? 0.7 : 1,
+                      cursor: wikiChoices.length === 0 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    <option value="">
+                      {wikiChoices.length === 0 ? "No wikis available" : "Select wiki…"}
+                    </option>
+                    {wikiChoices.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.title}
+                      </option>
+                    ))}
+                  </select>
+                  {activeWikiChoice ? (
+                    <ActiveSelectionLabel
+                      label={activeWikiChoice.title}
+                      id={activeWikiChoice.id}
+                      isNew={Boolean(activeWikiChoice.isNew)}
+                    />
+                  ) : null}
+
+                  {wikiChoices.length === 0 ? (
+                    <div style={{ fontSize: "12px", color: "#94a3b8" }}>No wiki in project yet.</div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        disabled={!activeEntityId || !activeWikiId}
+                        onClick={() => toggle(activeWikiId)}
+                        style={{
+                          border: "none",
+                          borderRadius: "6px",
+                          padding: "8px 10px",
+                          cursor: !activeEntityId || !activeWikiId ? "not-allowed" : "pointer",
+                          background: activeWikiLinked ? "#334155" : "#16a34a",
+                          color: "white",
+                          fontWeight: 800,
+                          fontSize: 12,
+                          opacity: !activeEntityId || !activeWikiId ? 0.65 : 1,
+                        }}
+                      >
+                        {activeWikiLinked ? "Unlink wiki" : "Link wiki"}
+                      </button>
+
+                      {activeWikiChoice ? (
+                        <div style={{ fontSize: 12, color: "#94a3b8", overflowWrap: "anywhere" }}>
+                          {activeWikiChoice.id}
                         </div>
-                      );
-                    })}
+                      ) : null}
 
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 12, color: "#94a3b8" }}>No wiki linked yet.</div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+                      {!activeEntityId ? (
+                        <div style={{ fontSize: 12, color: "#94a3b8" }}>Pick an entity to see/link wikis.</div>
+                      ) : activeLinks.size ? (
+                        <div style={{ display: "grid", gap: "6px", maxHeight: 250, overflowY: "auto", paddingRight: 4 }}>
+                          <div style={{ fontSize: 12, color: "#94a3b8" }}>Linked wikis ({activeLinks.size})</div>
+                          {Array.from(activeLinks).map((id) => {
+                            const w = wikiChoices.find((x) => x.id === id) || null;
+                            return (
+                              <div
+                                key={id}
+                                style={{
+                                  padding: "8px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #1f2937",
+                                  background: "#111827",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: 8,
+                                }}
+                                title={id}
+                              >
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                                    <span
+                                      style={{
+                                        color: "#e5e7eb",
+                                        fontSize: 12,
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        fontWeight: 700,
+                                      }}
+                                    >
+                                      {w?.title || "Untitled wiki"}
+                                    </span>
+                                  </div>
+                                  <div style={{ color: "#94a3b8", fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    {id}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => toggle(id)}
+                                  style={{
+                                    border: "none",
+                                    background: "#0b1220",
+                                    color: "#fecaca",
+                                    cursor: "pointer",
+                                    borderRadius: 6,
+                                    padding: "6px 8px",
+                                    fontSize: 12,
+                                    fontWeight: 800,
+                                    flex: "0 0 auto",
+                                  }}
+                                >
+                                  Unlink
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 12, color: "#94a3b8" }}>No wiki linked yet.</div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
 
-        <div
-          style={{
-            borderTop: "1px solid #1f2937",
-            paddingTop: 8,
-            display: "grid",
-            gap: 6,
-          }}
-        >
-          <div style={{ fontSize: 12, color: "#94a3b8" }}>
-            All bindings ({activeBindingRows.length})
-          </div>
+          <div
+            style={{
+              borderTop: readOnly ? "none" : "1px solid #1f2937",
+              paddingTop: readOnly ? 0 : 8,
+              display: "grid",
+              gap: 6,
+            }}
+          >
+            <div style={{ fontSize: 12, color: "#94a3b8" }}>
+              All bindings ({activeBindingRows.length})
+            </div>
           {activeBindingRows.length ? (
             <div style={{ display: "grid", gap: 6, maxHeight: 260, overflowY: "auto", paddingRight: 4 }}>
               {activeBindingRows.map((row) => (
